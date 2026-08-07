@@ -133,7 +133,13 @@ async function set(device, capId, value, label) {
     console.log(`  ⚠︎  no capability found for "${label}" — skipped`);
     return false;
   }
-  await device.setCapabilityValue(capId, value);
+  // Homey changed this signature between versions. Try the current object form
+  // first, then fall back to the legacy positional form so this works anywhere.
+  try {
+    await device.setCapabilityValue({ capabilityId: capId, value });
+  } catch (e) {
+    await device.setCapabilityValue(capId, value);
+  }
   console.log(`  ✓  ${label}: set ${capId} = ${JSON.stringify(value)}`);
   return true;
 }
