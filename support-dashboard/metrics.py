@@ -159,13 +159,17 @@ def _get(base: str, opener, csrf: str, path_qs: str) -> dict:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def _date_filter(date_from: str | None, date_to: str | None) -> str:
-    """OData clause scoping Case.CreatedOn to [from 00:00, to 23:59:59] UTC. Either bound optional."""
+def _date_filter(field: str, date_from: str | None, date_to: str | None) -> str:
+    """OData clause scoping Case.<field> to [from 00:00, to 23:59:59] UTC. Either bound optional.
+
+    We scope by the CLOSE date (default ModifiedOn) so 'tickets closed in a period' matches
+    Creatio's closed report — a case created earlier but closed in-window is counted.
+    """
     parts: list[str] = []
     if date_from:
-        parts.append(f"CreatedOn ge {date_from}T00:00:00Z")
+        parts.append(f"{field} ge {date_from}T00:00:00Z")
     if date_to:
-        parts.append(f"CreatedOn le {date_to}T23:59:59Z")
+        parts.append(f"{field} le {date_to}T23:59:59Z")
     return (" and " + " and ".join(parts)) if parts else ""
 
 
@@ -192,9 +196,10 @@ def _level_filter(level: str | None) -> str:
 
 def _fetch_all_cases(base: str, opener, csrf: str, sat_field: str,
                      date_from: str | None, date_to: str | None,
-                     level: str | None = None) -> tuple[list[dict], bool]:
-    """All Cases in the date window (for closed-by-IC + survey scores), optionally scoped to a
-    queue level (Case Group = Level 1/2/3).
+                     level: str | None = None, close_field: str = "ModifiedOn"
+                     ) -> tuple[list[dict], bool]:
+    """Cases whose CLOSE date (close_field) falls in the window (for closed-by-IC + survey
+    scores), optionally scoped to a queue level (Case Group = Level 1/2/3).
 
     Tries to $expand the satisfaction lookup; if the instance uses a different property name the
     query 400s, so we retry WITHOUT it and report survey data as unavailable (survey_ok=False)
@@ -202,7 +207,7 @@ def _fetch_all_cases(base: str, opener, csrf: str, sat_field: str,
     """
     select = "Id,Number,Subject,CreatedOn,ModifiedOn,ModifiedById"
     base_expand = "Status($select=Name),Owner($select=Id,Name),Group($select=Name)"
-    filt = "1 eq 1" + _date_filter(date_from, date_to) + _level_filter(level)
+    filt = "1 eq 1" + _date_filter(close_field, date_from, date_to) + _level_filter(level)
     try:
         expand = f"{base_expand},{sat_field}($select=Name)"
         return _page_cases(base, opener, csrf, select, expand, filt), True
@@ -215,12 +220,12 @@ def _fetch_all_cases(base: str, opener, csrf: str, sat_field: str,
 
 def _fetch_drafted_cases(base: str, opener, csrf: str,
                          date_from: str | None, date_to: str | None,
-                         level: str | None = None) -> list[dict]:
-    """Cases that have an AI draft (UsrAiDraftText ne null) in the date window - the adoption universe."""
+                         level: str | None = None, close_field: str = "ModifiedOn") -> list[dict]:
+    """Cases with an AI draft (UsrAiDraftText ne null) closed in the window - the adoption universe."""
     select = ("Id,Number,Subject,CreatedOn,ModifiedOn,ModifiedById,"
               "UsrAiApproved,UsrAiDraftDeflected,UsrAiDraftModified")
     expand = "Status($select=Name),Owner($select=Id,Name),Group($select=Name)"
-    filt = "UsrAiDraftText ne null" + _date_filter(date_from, date_to) + _level_filter(level)
+    filt = "UsrAiDraftText ne null" + _date_filter(close_field, date_from, date_to) + _level_filter(level)
     return _page_cases(base, opener, csrf, select, expand, filt)
 
 
@@ -228,9 +233,10 @@ def _fetch_drafted_cases(base: str, opener, csrf: str,
 # Row helpers                                                                  #
 # --------------------------------------------------------------------------- #
 def _is_done(r: dict) -> bool:
-    """Terminal status = the case is closed (closed / resolved / cancelled)."""
+    """'Closed' = a terminal status counted as closed. Matches the Creatio closed report:
+    Closed + Resolved (Cancelled is NOT counted)."""
     n = ((r.get("Status") or {}).get("Name") or "").lower()
-    return any(x in n for x in ("clos", "resolv", "cancel"))
+    return ("clos" in n) or ("resolv" in n)
 
 
 def _is_true(r: dict, k: str) -> bool:
@@ -324,27 +330,37 @@ def collect(creds: dict | None = None, date_from: str | None = None,
     env = creds or load_env()
     base = env["CREATIO_URL"].rstrip("/")
     sat_field = (env.get("CREATIO_SATISFACTION_FIELD") or DEFAULT_SATISFACTION_FIELD).strip()
+    # Which Case date field marks "closed". ModifiedOn is the close-date proxy (a closed case's
+    # last change ~= when it was closed); override if your instance has a real resolution-date field.
+    close_field = (env.get("CREATIO_CLOSED_DATE_FIELD") or "ModifiedOn").strip()
 
     opener, csrf = login(base, env["CREATIO_USER"], env["CREATIO_PASS"])
-    all_rows, survey_ok = _fetch_all_cases(base, opener, csrf, sat_field, date_from, date_to, level)
-    drafted_rows = _fetch_drafted_cases(base, opener, csrf, date_from, date_to, level)
+    all_rows, survey_ok = _fetch_all_cases(base, opener, csrf, sat_field, date_from, date_to,
+                                           level, close_field)
+    drafted_rows = _fetch_drafted_cases(base, opener, csrf, date_from, date_to, level, close_field)
 
     ic: dict[str, dict] = defaultdict(_blank_ic)
     ic_level: dict[str, str] = {}
     ic_vendor: dict[str, str] = {}
+    OTHER = "Other / Unassigned"          # non-roster owners + unassigned, bucketed so totals reconcile
 
-    def resolve(name: str) -> tuple[str, bool]:
-        """Map a raw Owner name to a stable key + on-roster flag, recording level/vendor.
-        Roster members always key by their canonical name (so spelling drift can't split a person
-        or duplicate a seeded blank row)."""
-        m = _match_roster(name)
+    def route(raw: str) -> str:
+        """Return the IC bucket key for a raw Owner value, so per-person totals reconcile with the
+        full closed count. Roster members -> their canonical name; unassigned -> OTHER; non-roster
+        -> their own row when showing all owners, else folded into OTHER (support-team view)."""
+        if raw == "Unassigned":
+            ic_level[OTHER], ic_vendor[OTHER] = "—", ""
+            return OTHER
+        m = _match_roster(raw)
         if m:
-            ic_level[m[0]] = m[1]
-            ic_vendor[m[0]] = m[2]
-            return m[0], True
-        ic_level.setdefault(name, "Other")
-        ic_vendor.setdefault(name, "")
-        return name, False
+            ic_level[m[0]], ic_vendor[m[0]] = m[1], m[2]
+            return m[0]
+        if team_only:
+            ic_level[OTHER], ic_vendor[OTHER] = "—", ""
+            return OTHER
+        ic_level.setdefault(raw, "Other")
+        ic_vendor.setdefault(raw, "")
+        return raw
 
     # Seed the FULL support roster so every widget lists all support staff, even with zero data.
     for canon, (lvl, vend) in SUPPORT_ROSTER.items():
@@ -358,12 +374,7 @@ def collect(creds: dict | None = None, date_from: str | None = None,
 
     # --- 1) Tickets closed by IC  +  2) survey scores (over all cases in window) ---
     for r in all_rows:
-        person = _attribute(r)
-        if person == "Unassigned":
-            continue
-        name, on_team = resolve(person)
-        if team_only and not on_team:
-            continue
+        name = route(_attribute(r))
         rec = ic[name]
         sname = _sat_name(r, sat_field) if survey_ok else None
         if _is_done(r):
@@ -389,12 +400,7 @@ def collect(creds: dict | None = None, date_from: str | None = None,
     for r in drafted_rows:
         if not _is_done(r):
             continue                      # adoption looks ONLY at tickets that have been closed
-        person = _attribute(r)
-        if person == "Unassigned":
-            continue
-        name, on_team = resolve(person)
-        if team_only and not on_team:
-            continue
+        name = route(_attribute(r))
         rec = ic[name]
         state = _draft_state(r)          # accepted / edited / not used
         rec["drafted_closed"] += 1
@@ -449,7 +455,8 @@ def collect(creds: dict | None = None, date_from: str | None = None,
             "survey_cases": newest(rec["survey_cases"]),
             "adoption_cases": newest(rec["adoption_cases"]),
         })
-    by_ic.sort(key=lambda x: (-x["closed"], x["name"]))
+    # roster/individuals first (by closed desc); the Other/Unassigned bucket always sits last
+    by_ic.sort(key=lambda x: (x["name"] == OTHER, -x["closed"], x["name"]))
 
     # Overall roll-ups
     tot_closed = sum(x["closed"] for x in by_ic)

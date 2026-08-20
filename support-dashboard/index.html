@@ -162,7 +162,7 @@
       <span class="pill" id="periodPill">—</span>
       <span class="pill" id="levelPill" style="background:var(--hair)">All levels</span>
     </div>
-    <span style="font-size:11.5px;font-weight:300;color:var(--muted)">All figures are live from Creatio for the selected period. Click any agent to see their cases.</span>
+    <span style="font-size:11.5px;font-weight:300;color:var(--muted)">Live from Creatio · counted by close date (Closed + Resolved). Click any agent to see their cases.</span>
   </div>
 
   <div class="banner" id="banner"></div>
@@ -244,6 +244,7 @@ const BAND = {
   "Extremely poor":{fill:"#B4552D",ink:"#FFFFFF",sign:"−"},
 };
 const BANDS=["Excellent","Good","Neutral","Poor","Extremely poor"];
+const OTHER="Other / Unassigned";
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fmtDate = s => { if(!s) return "—"; const [y,m,d]=s.split("-"); return `${d} ${MONTHS[+m-1]} ${y}`; };
 
@@ -371,7 +372,7 @@ const stateTag=s=>{const m={accepted:["var(--accepted)","#fff","accepted"],edite
 const adoptCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Draft",f:c=>stateTag(c.draft_state||(c.draft_used?"edited":"not used"))},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)}];
 
 function render(j){
-  const t=j.totals, rows=j.by_ic.map(norm), agents=rows.length;
+  const t=j.totals, rows=j.by_ic.map(norm), agents=rows.filter(r=>r.name!==OTHER).length;
   const lvlLabel = j.level==="all"?"All levels":("Level "+j.level);
   $("#periodPill").textContent=`${j.range.from===j.range.to?fmtDate(j.range.from):"month-to-date"} · ${j.range.days} days`;
   $("#levelPill").textContent=lvlLabel;
@@ -396,19 +397,20 @@ function render(j){
 
   // Tickets closed by IC (all staff; L1 & L2 together)
   $("#closedTotal").textContent=t.closed;
-  const ics=rows.slice().sort((a,b)=>b.closed-a.closed||a.name.localeCompare(b.name));
+  const ics=rows.slice().sort((a,b)=>((a.name===OTHER)-(b.name===OTHER))||b.closed-a.closed||a.name.localeCompare(b.name));
   const maxClosed=Math.max(1,...ics.map(r=>r.closed));
   const G="16px 26px 1fr 74px 60px";
   const chead=`<div class="dsum static" style="grid-template-columns:${G};padding:12px 0 8px"><span></span><span class="eyebrow" style="font-size:9.5px">#</span><span class="eyebrow" style="font-size:9.5px">Agent</span><span class="eyebrow" style="font-size:9.5px;text-align:right">Closed</span><span class="eyebrow" style="font-size:9.5px;text-align:right">Avg/day</span></div>`;
   $("#closed").innerHTML = chead + ics.map((r,i)=>{
-    const L2=r.level==="Level 2", has=r.closedCases.length>0;
+    const L2=r.level==="Level 2", isOther=r.name===OTHER, has=r.closedCases.length>0;
+    const chip=L2?"L2":r.level==="Level 1"?"L1":"—";
     const sum=`<div class="dsum${has?'':' static'}" style="grid-template-columns:${G}" ${has?'onclick="tg(this)"':''}>
       <span class="chev">${has?'▸':''}</span>
-      <span class="num" style="font-size:12px;font-weight:600;color:${i<3?'var(--teal)':'var(--muted)'}">${String(i+1).padStart(2,"0")}</span>
+      <span class="num" style="font-size:12px;font-weight:600;color:${i<3&&!isOther?'var(--teal)':'var(--muted)'}">${isOther?'·':String(i+1).padStart(2,"0")}</span>
       <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap">${esc(r.name)}</span>
-          <span style="font-size:9.5px;font-weight:600;letter-spacing:.06em;color:${L2?'var(--navy)':'var(--sec)'};background:${L2?'var(--tint)':'var(--hair)'};border-radius:4px;padding:2px 6px">${L2?'L2':'L1'}</span>
+          <span style="font-size:13px;font-weight:${isOther?400:500};color:${isOther?'var(--sec)':'var(--navy)'};white-space:nowrap">${esc(r.name)}</span>
+          <span style="font-size:9.5px;font-weight:600;letter-spacing:.06em;color:${L2?'var(--navy)':'var(--sec)'};background:${L2?'var(--tint)':'var(--hair)'};border-radius:4px;padding:2px 6px">${chip}</span>
           ${r.vendor?`<span style="font-size:11px;font-weight:300;color:var(--muted);white-space:nowrap">${esc(r.vendor)}</span>`:''}
         </div>
         <div style="height:6px;background:var(--hair);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--teal);width:${(r.closed/maxClosed*100).toFixed(1)}%"></div></div>
@@ -422,7 +424,7 @@ function render(j){
   renderSurvey(j,t,rows);
 
   // Adoption (all staff)
-  const adopt=rows.slice().sort((a,b)=>(b.rate??-1)-(a.rate??-1)||b.drafted-a.drafted);
+  const adopt=rows.slice().sort((a,b)=>((a.name===OTHER)-(b.name===OTHER))||(b.rate??-1)-(a.rate??-1)||b.drafted-a.drafted);
   const maxDrafted=Math.max(1,...adopt.map(r=>r.drafted));
   $("#adoptTotals").innerHTML=[
       ["Accepted",t.accepted_closed,"var(--accepted)"],
@@ -465,7 +467,7 @@ function renderSurvey(j,t,rows){
     <div style="display:flex;flex-wrap:wrap;gap:12px">${teamDist.map(d=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${d.fill}"></span><span style="font-size:11px;color:var(--navy)">${d.label}</span><span style="font-size:11px;font-weight:600;color:var(--sec)">${d.sign}</span></div>`).join("")}</div>`:'<span style="font-size:11.5px;font-weight:300;color:var(--sec)">No survey responses in this period.</span>'}
   </div>`;
 
-  const survey=rows.slice().sort((a,b)=>b.responses-a.responses||(b.nps??-999)-(a.nps??-999)||a.name.localeCompare(b.name));
+  const survey=rows.slice().sort((a,b)=>((a.name===OTHER)-(b.name===OTHER))||b.responses-a.responses||(b.nps??-999)-(a.nps??-999)||a.name.localeCompare(b.name));
   const GS="16px 1fr 48px 42px";
   const head=`<div class="dsum static" style="grid-template-columns:${GS};padding:12px 0 8px"><span></span><span class="eyebrow" style="font-size:9.5px">Agent · responses</span><span class="eyebrow" style="font-size:9.5px;text-align:right">NPS</span><span class="eyebrow" style="font-size:9.5px;text-align:right">CSAT</span></div>`;
   const list=survey.map(r=>{
