@@ -1,0 +1,361 @@
+{
+  "meta": {
+    "title": "Support Performance Dashboard",
+    "subtitle": "H&L support team \u2014 tickets closed, survey scores, AI-agent adoption",
+    "period": {
+      "from": "2026-08-01",
+      "to": "2026-08-20",
+      "label": "Aug 2026 (month-to-date)",
+      "days": 20
+    },
+    "source": "Real closed + survey figures from Report_August26.xlsx (Summary sheet). Live version pulls the same shape from Creatio.",
+    "data_quality": {
+      "closed": "real",
+      "survey": "real",
+      "adoption": "SAMPLE \u2014 illustrative only; adoption is a new AI metric not in the spreadsheet"
+    }
+  },
+  "metric_definitions": {
+    "tickets_closed_by_ic": "Count of closed/resolved/cancelled Cases attributed to each agent (owner).",
+    "survey_nps": "(promoters \u2212 detractors) / responses \u00d7 100. Promoters = Excellent+Good; Detractors = Poor+Extremely poor.",
+    "avg_csat": "Mean satisfaction on a 1\u20135 scale (Excellent 5 \u2026 Extremely poor 1).",
+    "ai_adoption": "Closed tickets only: of closed Cases that had an AI draft, the share where the draft was used (approved)."
+  },
+  "kpis": [
+    {
+      "key": "closed",
+      "label": "Tickets closed",
+      "value": 996,
+      "detail": "20-day window",
+      "format": "int"
+    },
+    {
+      "key": "nps",
+      "label": "Survey NPS",
+      "value": 71.4,
+      "detail": "7 responses",
+      "format": "number"
+    },
+    {
+      "key": "csat",
+      "label": "Avg CSAT",
+      "value": 4.29,
+      "detail": "6 promoters \u00b7 1 detractors",
+      "format": "number",
+      "suffix": " / 5"
+    },
+    {
+      "key": "adoption",
+      "label": "AI adoption (closed)",
+      "value": 0.6613,
+      "detail": "205 of 310 drafted+closed",
+      "format": "percent",
+      "sample": true
+    }
+  ],
+  "overall": {
+    "closed": 996,
+    "survey_responses": 7,
+    "nps": 71.4,
+    "csat": 4.29,
+    "distribution": {
+      "Excellent": 5,
+      "Good": 1,
+      "Neutral": 0,
+      "Poor": 0,
+      "Extremely poor": 1
+    },
+    "drafted_closed": 310,
+    "approved_closed": 205,
+    "adoption_rate": 0.6613
+  },
+  "by_ic": [
+    {
+      "name": "Youssef Ibrahim",
+      "level": "Level 2",
+      "vendor": "FlairsTech",
+      "closed": 169,
+      "avg_closed_per_day": 8.45,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 41,
+      "approved_closed": 33,
+      "adoption_rate": 0.8049
+    },
+    {
+      "name": "Rahul Kumar",
+      "level": "Level 1",
+      "vendor": "Sherpa",
+      "closed": 143,
+      "avg_closed_per_day": 7.15,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 52,
+      "approved_closed": 44,
+      "adoption_rate": 0.8462
+    },
+    {
+      "name": "Anton Lopez",
+      "level": "Level 1",
+      "vendor": "MicroSourcing",
+      "closed": 132,
+      "avg_closed_per_day": 6.6,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 37,
+      "approved_closed": 22,
+      "adoption_rate": 0.5946
+    },
+    {
+      "name": "Aditya Katyayan",
+      "level": "Level 1",
+      "vendor": "Sherpa",
+      "closed": 124,
+      "avg_closed_per_day": 6.2,
+      "survey_responses": 1,
+      "nps": 100.0,
+      "csat": 5.0,
+      "promoters": 1,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 1,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 48,
+      "approved_closed": 39,
+      "adoption_rate": 0.8125
+    },
+    {
+      "name": "Oliver Asuncion",
+      "level": "Level 1",
+      "vendor": "MicroSourcing",
+      "closed": 85,
+      "avg_closed_per_day": 4.25,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 29,
+      "approved_closed": 14,
+      "adoption_rate": 0.4828
+    },
+    {
+      "name": "Abdul Hassan",
+      "level": "Level 1",
+      "vendor": "Sherpa",
+      "closed": 79,
+      "avg_closed_per_day": 3.95,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 33,
+      "approved_closed": 19,
+      "adoption_rate": 0.5758
+    },
+    {
+      "name": "Mostafa Essam",
+      "level": "Level 2",
+      "vendor": "FlairsTech",
+      "closed": 69,
+      "avg_closed_per_day": 3.45,
+      "survey_responses": 3,
+      "nps": 33.3,
+      "csat": 3.67,
+      "promoters": 2,
+      "detractors": 1,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 2,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 1
+      },
+      "drafted_closed": 12,
+      "approved_closed": 6,
+      "adoption_rate": 0.5
+    },
+    {
+      "name": "Mostafa Essa",
+      "level": "Level 1",
+      "vendor": "FlairsTech",
+      "closed": 68,
+      "avg_closed_per_day": 3.4,
+      "survey_responses": 2,
+      "nps": 100.0,
+      "csat": 4.5,
+      "promoters": 2,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 1,
+        "Good": 1,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 18,
+      "approved_closed": 11,
+      "adoption_rate": 0.6111
+    },
+    {
+      "name": "Jae Villalobos",
+      "level": "Level 1",
+      "vendor": "MicroSourcing",
+      "closed": 62,
+      "avg_closed_per_day": 3.1,
+      "survey_responses": 1,
+      "nps": 100.0,
+      "csat": 5.0,
+      "promoters": 1,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 1,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 21,
+      "approved_closed": 8,
+      "adoption_rate": 0.381
+    },
+    {
+      "name": "Marc Magno",
+      "level": "Level 1",
+      "vendor": "MicroSourcing",
+      "closed": 30,
+      "avg_closed_per_day": 1.5,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 9,
+      "approved_closed": 3,
+      "adoption_rate": 0.3333
+    },
+    {
+      "name": "Youssef Eissa",
+      "level": "Level 2",
+      "vendor": "FlairsTech",
+      "closed": 27,
+      "avg_closed_per_day": 1.35,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 7,
+      "approved_closed": 5,
+      "adoption_rate": 0.7143
+    },
+    {
+      "name": "Hisham Abdelrashid",
+      "level": "Level 1",
+      "vendor": "FlairsTech",
+      "closed": 8,
+      "avg_closed_per_day": 0.4,
+      "survey_responses": 0,
+      "nps": null,
+      "csat": null,
+      "promoters": 0,
+      "detractors": 0,
+      "neutral": 0,
+      "distribution": {
+        "Excellent": 0,
+        "Good": 0,
+        "Neutral": 0,
+        "Poor": 0,
+        "Extremely poor": 0
+      },
+      "drafted_closed": 3,
+      "approved_closed": 1,
+      "adoption_rate": 0.3333
+    }
+  ],
+  "palette_hint": {
+    "note": "Neutral placeholder palette \u2014 swap for H&L brand colours in Claude Design.",
+    "background": "#0f1420",
+    "panel": "#171d2b",
+    "ink": "#e7ecf5",
+    "muted": "#94a1b8",
+    "accent": "#4f8cff",
+    "good": "#38c172",
+    "warn": "#f0a500",
+    "bad": "#e3524a"
+  }
+}
