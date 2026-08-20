@@ -90,9 +90,13 @@ class Handler(BaseHTTPRequestHandler):
             if not (df and dt):
                 df, dt = _default_range()
             team_only = params.get("team", ["1"])[0] != "0"
+            level = (params.get("level", ["all"])[0] or "all").strip()
+            if level not in ("all", "1", "2", "3"):
+                level = "all"
             try:
-                print(f"Pulling metrics from Creatio (from={df} to={dt} team_only={team_only}) ...")
-                data = metrics.collect(_creds, df, dt, team_only)
+                print(f"Pulling metrics from Creatio (from={df} to={dt} team_only={team_only} "
+                      f"level={level}) ...")
+                data = metrics.collect(_creds, df, dt, team_only, None if level == "all" else level)
                 t = data["totals"]
                 print(f"  {t['closed']} closed, {t['survey_responses']} surveys, "
                       f"adoption {t['adoption_rate']}")

@@ -185,17 +185,24 @@ def _page_cases(base: str, opener, csrf: str, select: str, expand: str, filt: st
     return rows
 
 
+def _level_filter(level: str | None) -> str:
+    """OData clause scoping cases to a Case Group (queue) of 'Level 1/2/3'. 'all'/None = no filter."""
+    return f" and Group/Name eq 'Level {level}'" if level in ("1", "2", "3") else ""
+
+
 def _fetch_all_cases(base: str, opener, csrf: str, sat_field: str,
-                     date_from: str | None, date_to: str | None) -> tuple[list[dict], bool]:
-    """All Cases in the date window (for closed-by-IC + survey scores).
+                     date_from: str | None, date_to: str | None,
+                     level: str | None = None) -> tuple[list[dict], bool]:
+    """All Cases in the date window (for closed-by-IC + survey scores), optionally scoped to a
+    queue level (Case Group = Level 1/2/3).
 
     Tries to $expand the satisfaction lookup; if the instance uses a different property name the
     query 400s, so we retry WITHOUT it and report survey data as unavailable (survey_ok=False)
     rather than failing the whole pull.
     """
-    select = "Id,Number,CreatedOn,ModifiedById"
+    select = "Id,Number,Subject,CreatedOn,ModifiedOn,ModifiedById"
     base_expand = "Status($select=Name),Owner($select=Id,Name),Group($select=Name)"
-    filt = "1 eq 1" + _date_filter(date_from, date_to)
+    filt = "1 eq 1" + _date_filter(date_from, date_to) + _level_filter(level)
     try:
         expand = f"{base_expand},{sat_field}($select=Name)"
         return _page_cases(base, opener, csrf, select, expand, filt), True
@@ -207,11 +214,12 @@ def _fetch_all_cases(base: str, opener, csrf: str, sat_field: str,
 
 
 def _fetch_drafted_cases(base: str, opener, csrf: str,
-                         date_from: str | None, date_to: str | None) -> list[dict]:
+                         date_from: str | None, date_to: str | None,
+                         level: str | None = None) -> list[dict]:
     """Cases that have an AI draft (UsrAiDraftText ne null) in the date window - the adoption universe."""
-    select = "Id,Number,CreatedOn,ModifiedById,UsrAiApproved"
+    select = "Id,Number,Subject,CreatedOn,ModifiedOn,ModifiedById,UsrAiApproved"
     expand = "Status($select=Name),Owner($select=Id,Name),Group($select=Name)"
-    filt = "UsrAiDraftText ne null" + _date_filter(date_from, date_to)
+    filt = "UsrAiDraftText ne null" + _date_filter(date_from, date_to) + _level_filter(level)
     return _page_cases(base, opener, csrf, select, expand, filt)
 
 
@@ -260,6 +268,21 @@ def _blank_ic() -> dict:
         # adoption (closed cases with an AI draft)
         "drafted_closed": 0,
         "approved_closed": 0,
+        # drill-down case lists (populated per widget)
+        "closed_cases": [],
+        "survey_cases": [],
+        "adoption_cases": [],
+    }
+
+
+def _case_base(r: dict) -> dict:
+    """Common case detail for the drill-downs."""
+    return {
+        "number": r.get("Number") or "(no #)",
+        "subject": (r.get("Subject") or "").strip() or "(no subject)",
+        "status": (r.get("Status") or {}).get("Name") or "Unknown",
+        "created": (r.get("CreatedOn") or "")[:10],
+        "updated": (r.get("ModifiedOn") or "")[:10],
     }
 
 
@@ -278,59 +301,72 @@ def _distinct_days(rows: list[dict], date_from: str | None, date_to: str | None)
 
 
 def collect(creds: dict | None = None, date_from: str | None = None,
-            date_to: str | None = None, team_only: bool = True) -> dict:
-    """Log in, pull, aggregate. Returns the dashboard payload (see the keys built at the bottom)."""
+            date_to: str | None = None, team_only: bool = True,
+            level: str | None = None) -> dict:
+    """Log in, pull, aggregate. Returns the dashboard payload (see the keys built at the bottom).
+
+    ``level`` ('1'/'2'/'3' or None/'all') scopes every widget to a Case queue level (Group).
+    """
+    if level not in ("1", "2", "3"):
+        level = None
     env = creds or load_env()
     base = env["CREATIO_URL"].rstrip("/")
     sat_field = (env.get("CREATIO_SATISFACTION_FIELD") or DEFAULT_SATISFACTION_FIELD).strip()
 
     opener, csrf = login(base, env["CREATIO_USER"], env["CREATIO_PASS"])
-    all_rows, survey_ok = _fetch_all_cases(base, opener, csrf, sat_field, date_from, date_to)
-    drafted_rows = _fetch_drafted_cases(base, opener, csrf, date_from, date_to)
+    all_rows, survey_ok = _fetch_all_cases(base, opener, csrf, sat_field, date_from, date_to, level)
+    drafted_rows = _fetch_drafted_cases(base, opener, csrf, date_from, date_to, level)
 
     ic: dict[str, dict] = defaultdict(_blank_ic)
     ic_level: dict[str, str] = {}
     ic_vendor: dict[str, str] = {}
 
-    def bump_level(name: str) -> bool:
-        """Record the IC's level + vendor; return True if they're on the support roster."""
+    def resolve(name: str) -> tuple[str, bool]:
+        """Map a raw Owner name to a stable key + on-roster flag, recording level/vendor.
+        Roster members always key by their canonical name (so spelling drift can't split a person
+        or duplicate a seeded blank row)."""
         m = _match_roster(name)
         if m:
-            ic_level[name] = m[1]
-            ic_vendor[name] = m[2]
-            return True
+            ic_level[m[0]] = m[1]
+            ic_vendor[m[0]] = m[2]
+            return m[0], True
         ic_level.setdefault(name, "Other")
         ic_vendor.setdefault(name, "")
-        return False
+        return name, False
+
+    # Seed the FULL support roster so every widget lists all support staff, even with zero data.
+    for canon, (lvl, vend) in SUPPORT_ROSTER.items():
+        ic[canon]                       # touch -> blank record
+        ic_level[canon] = lvl
+        ic_vendor[canon] = vend
 
     # --- 1) Tickets closed by IC  +  2) survey scores (over all cases in window) ---
-    survey_overall = Counter()
     for r in all_rows:
         person = _attribute(r)
         if person == "Unassigned":
             continue
-        on_team = bump_level(person)
+        name, on_team = resolve(person)
         if team_only and not on_team:
             continue
-        rec = ic[person]
+        rec = ic[name]
+        sname = _sat_name(r, sat_field) if survey_ok else None
         if _is_done(r):
             rec["closed"] += 1
-        if survey_ok:
-            sname = _sat_name(r, sat_field)
-            if sname:
-                key = sname.strip()
-                low = key.lower()
-                rec["survey_responses"] += 1
-                rec["score_sum"] += SATISFACTION_SCALE.get(low, 0)
-                if key in rec["distribution"]:
-                    rec["distribution"][key] += 1
-                if low in PROMOTERS:
-                    rec["promoters"] += 1
-                elif low in DETRACTORS:
-                    rec["detractors"] += 1
-                else:
-                    rec["neutral"] += 1
-                survey_overall[key if key in rec["distribution"] else "Other"] += 1
+            rec["closed_cases"].append(_case_base(r))
+        if sname:
+            key = sname.strip()
+            low = key.lower()
+            rec["survey_responses"] += 1
+            rec["score_sum"] += SATISFACTION_SCALE.get(low, 0)
+            if key in rec["distribution"]:
+                rec["distribution"][key] += 1
+            if low in PROMOTERS:
+                rec["promoters"] += 1
+            elif low in DETRACTORS:
+                rec["detractors"] += 1
+            else:
+                rec["neutral"] += 1
+            rec["survey_cases"].append({**_case_base(r), "satisfaction": key})
 
     # --- 3) AI-agent adoption over CLOSED cases only ---
     for r in drafted_rows:
@@ -338,18 +374,16 @@ def collect(creds: dict | None = None, date_from: str | None = None,
             continue                      # adoption looks ONLY at tickets that have been closed
         person = _attribute(r)
         if person == "Unassigned":
-            # still count toward the overall adoption universe, just not to a person
-            person = "Unassigned"
-        else:
-            on_team = bump_level(person)
-            if team_only and not on_team:
-                continue
-        rec = ic[person]
+            continue
+        name, on_team = resolve(person)
+        if team_only and not on_team:
+            continue
+        rec = ic[name]
+        used = _is_true(r, "UsrAiApproved")
         rec["drafted_closed"] += 1
-        if _is_true(r, "UsrAiApproved"):
+        if used:
             rec["approved_closed"] += 1
-
-    ic.pop("Unassigned", None)  # not an IC; drop from the per-person table
+        rec["adoption_cases"].append({**_case_base(r), "draft_used": used})
 
     days = _distinct_days(all_rows, date_from, date_to)
 
@@ -364,6 +398,9 @@ def collect(creds: dict | None = None, date_from: str | None = None,
     def adoption(rec: dict) -> float | None:
         d = rec["drafted_closed"]
         return round(rec["approved_closed"] / d, 4) if d else None
+
+    def newest(cases: list[dict]) -> list[dict]:
+        return sorted(cases, key=lambda c: c.get("created") or "", reverse=True)
 
     by_ic = []
     for name, rec in ic.items():
@@ -383,6 +420,10 @@ def collect(creds: dict | None = None, date_from: str | None = None,
             "drafted_closed": rec["drafted_closed"],
             "approved_closed": rec["approved_closed"],
             "adoption_rate": adoption(rec),
+            # drill-down case detail (newest first)
+            "closed_cases": newest(rec["closed_cases"]),
+            "survey_cases": newest(rec["survey_cases"]),
+            "adoption_cases": newest(rec["adoption_cases"]),
         })
     by_ic.sort(key=lambda x: (-x["closed"], x["name"]))
 
@@ -406,6 +447,7 @@ def collect(creds: dict | None = None, date_from: str | None = None,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "range": {"from": date_from, "to": date_to, "days": days},
         "team_only": team_only,
+        "level": level or "all",
         "survey_available": survey_ok,
         "satisfaction_field": sat_field,
         "totals": {

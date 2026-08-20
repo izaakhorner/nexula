@@ -12,41 +12,39 @@
     --bg:#F2F6F8; --navy:#12293A; --card:#FFFFFF; --border:#DDE6EA; --hair:#ECF1F3;
     --tint:#DCEEF2; --teal:#26707F; --teal2:#5FB2C4; --teal3:#91C8CD;
     --sec:#3D505E; --muted:#5C7385; --navymuted:#8FA6B4;
-    --pos:#2F7A50; --posbar:#3D8F5F; --warn:#A0691B; --neg:#B4552D; --amber:#C88A2E;
+    --pos:#2F7A50; --posbar:#3D8F5F; --warn:#A0691B; --neg:#B4552D;
+    --amber:#C8791E; --track:#6E93A3;  /* adoption: warm "used" vs cool "not used" — high contrast */
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg)}
-  body{font-family:Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--navy);
-       padding-bottom:56px}
+  body{font-family:Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--navy);padding-bottom:56px}
   h1,h2,p{margin:0}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
   .num{font-variant-numeric:tabular-nums}
   .eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 
-  /* header band */
   .band{background:var(--navy);padding:18px 0}
   .band .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-  .badge{background:#fff;border-radius:12px;padding:10px 16px;font-size:15px;font-weight:700;
-         color:var(--navy);letter-spacing:-.01em;flex:none}
-  .titles{display:flex;flex-direction:column;gap:2px;flex:1;min-width:330px}
+  .badge{background:#fff;border-radius:12px;padding:10px 16px;font-size:15px;font-weight:700;color:var(--navy);letter-spacing:-.01em;flex:none}
+  .titles{display:flex;flex-direction:column;gap:2px;flex:1;min-width:300px}
   .titles h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.01em}
   .titles p{font-size:12.5px;font-weight:300;color:var(--teal3)}
   .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .ctl{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.08);
-       border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px}
+  .ctl{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px}
   .ctl label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--navymuted)}
-  .ctl input[type=date]{background:transparent;border:0;color:#fff;font:inherit;font-size:12.5px;
-       font-weight:500;color-scheme:dark;padding:0;cursor:pointer}
-  .switch{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
-  .switch .track{width:30px;height:17px;border-radius:9px;background:rgba(255,255,255,.25);
-       position:relative;flex:none;transition:background .15s}
-  .switch .knob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
-       background:#fff;transition:left .15s}
+  .ctl input[type=date]{background:transparent;border:0;color:#fff;font:inherit;font-size:12.5px;font-weight:500;color-scheme:dark;padding:0;cursor:pointer}
+  .seg{display:flex;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:8px;overflow:hidden}
+  .seg button{background:transparent;border:0;color:var(--navymuted);font:inherit;font-size:12px;font-weight:600;padding:7px 11px;cursor:pointer}
+  .seg button:hover{color:#fff}
+  .seg button.on{background:var(--teal2);color:var(--navy)}
+  .seg .lbl{align-self:center;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--navymuted);padding:0 10px 0 12px}
+  .switch{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px}
+  .switch .track{width:30px;height:17px;border-radius:9px;background:rgba(255,255,255,.25);position:relative;flex:none;transition:background .15s}
+  .switch .knob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:left .15s}
   .switch.on .track{background:var(--teal2)}
   .switch.on .knob{left:15px}
   .switch span.lbl{font-size:12.5px;font-weight:400;color:#fff}
-  .btn{display:flex;align-items:center;gap:7px;background:var(--teal2);border:0;border-radius:8px;
-       padding:9px 15px;font:inherit;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer}
+  .btn{display:flex;align-items:center;gap:7px;background:var(--teal2);border:0;border-radius:8px;padding:9px 15px;font:inherit;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer}
   .btn:hover{background:var(--teal3)}
   .btn:disabled{opacity:.6;cursor:default}
   .btn.link{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff}
@@ -62,52 +60,66 @@
   .card-head p{font-size:11.5px;font-weight:300;color:var(--sec);text-wrap:pretty}
 
   .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px 18px;
-       display:flex;flex-direction:column;gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px 18px;display:flex;flex-direction:column;gap:14px}
   .kpi .top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:20px}
   .kpi .val{font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--navy)}
   .kpi .suf{font-size:15px;font-weight:400;color:var(--muted)}
   .gauge{height:4px;background:var(--hair);border-radius:2px;overflow:hidden}
   .gauge>i{display:block;height:100%;border-radius:2px}
-  .sample{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);
-       background:rgba(200,138,46,.14);border-radius:4px;padding:3px 6px;flex:none}
 
   .main{display:grid;grid-template-columns:1.42fr 1fr;gap:20px;align-items:start}
   .total{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
   .total .n{font-size:22px;font-weight:600;color:var(--teal);line-height:1}
 
-  .banner{background:#fbe9e6;border:1px solid var(--neg);color:#7a2f18;border-radius:10px;
-       padding:12px 14px;display:none;font-size:13px}
-  .note{background:#fbf1dd;border:1px solid var(--warn);color:#6e470f;border-radius:10px;
-       padding:12px 14px;font-size:12.5px}
+  /* drill-down rows */
+  .drill{border-top:1px solid var(--hair)}
+  .dsum{display:grid;gap:12px;align-items:center;padding:10px 0;cursor:pointer}
+  .dsum.static{cursor:default}
+  .chev{font-size:10px;color:var(--muted);width:12px;text-align:center;transition:transform .12s}
+  .ddet{padding:2px 0 12px 28px}
+  .ctab{width:100%;border-collapse:collapse;background:var(--bg);border-radius:8px;overflow:hidden}
+  .ctab th{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)}
+  .ctab td{font-size:11.5px;font-weight:400;color:var(--sec);padding:7px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+  .ctab tr:last-child td{border-bottom:0}
+  .ctab .cn{font-weight:600;color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ctab .subj{color:var(--navy)}
+  .tag{display:inline-block;font-size:10px;font-weight:600;border-radius:4px;padding:1px 7px;white-space:nowrap}
+
+  .banner{background:#fbe9e6;border:1px solid var(--neg);color:#7a2f18;border-radius:10px;padding:12px 14px;display:none;font-size:13px}
+  .note{background:#fbf1dd;border:1px solid var(--warn);color:#6e470f;border-radius:10px;padding:12px 14px;font-size:12.5px}
   .loading{padding:26px;text-align:center;color:var(--muted);font-weight:300}
 
-  footer{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:4px;
-       font-size:11px;font-weight:300;color:var(--muted);flex-wrap:wrap}
+  footer{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:4px;font-size:11px;font-weight:300;color:var(--muted);flex-wrap:wrap}
 
-  /* credentials modal */
-  .modal{position:fixed;inset:0;background:rgba(18,41,58,.55);display:none;align-items:center;
-       justify-content:center;padding:20px;z-index:20}
-  .modal .box{background:#fff;border-radius:14px;padding:24px;width:430px;max-width:100%;
-       border:1px solid var(--border)}
+  .modal{position:fixed;inset:0;background:rgba(18,41,58,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+  .modal .box{background:#fff;border-radius:14px;padding:24px;width:430px;max-width:100%;border:1px solid var(--border)}
   .modal h3{margin:0 0 4px;font-size:18px;font-weight:600;color:var(--navy)}
   .modal p{color:var(--sec);margin:0 0 16px;font-size:12.5px;font-weight:300}
   .field{margin-bottom:12px}
-  .field label{display:block;margin-bottom:5px;font-size:11px;font-weight:600;color:var(--muted);
-       letter-spacing:.04em}
-  .field input{width:100%;background:#fff;border:1px solid var(--border);color:var(--navy);
-       border-radius:8px;padding:9px 11px;font:inherit;font-size:13px}
+  .field label{display:block;margin-bottom:5px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+  .field input{width:100%;background:#fff;border:1px solid var(--border);color:var(--navy);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px}
   .field input:focus{outline:none;border-color:var(--teal2)}
   .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
-  .modal .btn{color:var(--navy)}
   .btn.ghost{background:var(--hair);color:var(--navy)}
   .btn.ghost:hover{background:#e2e9ec}
   .err{color:var(--neg);font-size:12.5px;min-height:18px;margin-bottom:6px}
 
-  @media (max-width:900px){
-    .kpis{grid-template-columns:repeat(2,1fr)}
-    .main{grid-template-columns:1fr}
-  }
+  /* daily chart */
+  .daychart{display:flex;align-items:flex-end;gap:3px;padding:8px 24px 6px;height:150px}
+  .daycol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;min-width:0}
+  .daycol .bar{width:100%;max-width:26px;border-radius:4px 4px 0 0;background:var(--teal);transition:opacity .12s}
+  .daycol.weekend .bar{background:#B7C6CD}
+  .daycol.peak .bar{background:var(--amber)}
+  .daycol .cnt{font-size:10px;font-weight:600;color:var(--sec);font-variant-numeric:tabular-nums}
+  .daychart .daycol:hover .bar{opacity:.8}
+  .dayaxis{display:flex;gap:3px;padding:0 24px 16px}
+  .dayaxis span{flex:1;text-align:center;font-size:9px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden}
+  /* per-agent daily sparkline in drill-downs */
+  .spark{display:flex;align-items:flex-end;gap:2px;height:34px;margin:2px 0 10px 28px}
+  .spark i{flex:1;background:var(--teal);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+  .spark i.wknd{background:#C3D0D6}
+
+  @media (max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr)} .main{grid-template-columns:1fr} .daycol .cnt{display:none} }
 </style>
 </head>
 <body>
@@ -120,14 +132,20 @@
       <p>Tickets closed, survey scores and AI-agent adoption</p>
     </div>
     <div class="controls">
+      <div class="seg" id="levelSeg">
+        <span class="lbl">Level</span>
+        <button data-l="all" class="on">All</button>
+        <button data-l="1">L1</button>
+        <button data-l="2">L2</button>
+        <button data-l="3">L3</button>
+      </div>
       <div class="ctl">
         <label>From</label><input type="date" id="from">
         <span style="color:rgba(255,255,255,.25)">·</span>
         <label>To</label><input type="date" id="to">
       </div>
       <div class="switch on" id="team" role="switch" aria-checked="true" tabindex="0">
-        <span class="track"><span class="knob"></span></span>
-        <span class="lbl">Support team only</span>
+        <span class="track"><span class="knob"></span></span><span class="lbl">Support team only</span>
       </div>
       <button class="btn" id="refresh"><span style="font-size:14px;line-height:1">↻</span><span>Refresh</span></button>
       <button class="btn link" id="creds">Credentials</button>
@@ -137,23 +155,34 @@
 
 <div class="wrap body">
   <div class="period">
-    <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="eyebrow" style="letter-spacing:.14em">Reporting period</span>
       <span class="pill" id="periodPill">—</span>
+      <span class="pill" id="levelPill" style="background:var(--hair)">All levels</span>
     </div>
-    <span style="font-size:11.5px;font-weight:300;color:var(--muted)">Closed and survey figures are live from Creatio. AI adoption is sample data until wired up.</span>
+    <span style="font-size:11.5px;font-weight:300;color:var(--muted)">All figures are live from Creatio for the selected period. Click any agent to see their cases.</span>
   </div>
 
   <div class="banner" id="banner"></div>
-
   <section class="kpis" id="kpis"></section>
+
+  <section class="card" id="dailyCard">
+    <div class="card-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <h2>Tickets closed per day</h2>
+        <p>Daily closure volume across the selected period. Weekends are muted; the busiest day is highlighted.</p>
+      </div>
+      <div style="display:flex;gap:26px" id="dailyStats"></div>
+    </div>
+    <div id="daily"></div>
+  </section>
 
   <section class="main">
     <div class="card">
       <div class="card-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
         <div style="display:flex;flex-direction:column;gap:4px">
           <h2>Tickets closed by IC</h2>
-          <p style="max-width:420px">Closed, resolved and cancelled cases attributed to each agent as owner.</p>
+          <p style="max-width:420px">Closed, resolved and cancelled cases attributed to each agent as owner. L1 &amp; L2 shown together.</p>
         </div>
         <div class="total"><span class="n num" id="closedTotal">—</span><span class="eyebrow" style="font-size:9.5px">total</span></div>
       </div>
@@ -172,24 +201,21 @@
   <section class="card">
     <div class="card-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
       <div style="display:flex;flex-direction:column;gap:5px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <h2>AI-agent adoption</h2>
-          <span class="sample" style="padding:3px 7px">Sample data</span>
-        </div>
-        <p style="max-width:560px">Closed tickets only: of closed cases that had an AI draft, the share where the draft was used. Illustrative until live Creatio numbers land.</p>
+        <h2>AI-agent adoption</h2>
+        <p style="max-width:560px">Closed tickets only: of closed cases that had an AI draft, the share where the draft was used.</p>
       </div>
       <div style="display:flex;gap:26px" id="adoptTotals"></div>
     </div>
     <div id="adoption"></div>
     <div style="display:flex;align-items:center;gap:18px;padding:0 24px 18px;font-size:11px;font-weight:300;color:var(--muted);flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--amber)"></span><span>Draft used</span></div>
-      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:rgba(200,138,46,.25)"></span><span>Drafted, not used — bar length is drafted volume relative to the busiest agent</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--track)"></span><span>Drafted, not used — bar length is drafted volume relative to the busiest agent</span></div>
     </div>
   </section>
 
   <footer>
     <span id="footL">—</span>
-    <span>Live from Creatio · adoption figures are sample data</span>
+    <span>Live from Creatio</span>
   </footer>
 </div>
 
@@ -202,66 +228,65 @@
     <div class="field"><label>Username</label><input id="cuser" autocomplete="username"></div>
     <div class="field"><label>Password</label><input id="cpass" type="password" autocomplete="current-password"></div>
     <div class="field"><label>Satisfaction field (optional, default SatisfactionLevel)</label><input id="csat" placeholder="SatisfactionLevel"></div>
-    <div class="row">
-      <button class="btn ghost" id="ccancel">Cancel</button>
-      <button class="btn" id="csave">Connect</button>
-    </div>
+    <div class="row"><button class="btn ghost" id="ccancel">Cancel</button><button class="btn" id="csave">Connect</button></div>
   </div>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?"":String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-
 const BAND = {
-  "Excellent":      {fill:"#2F7A50", ink:"#FFFFFF", sign:"+"},
-  "Good":           {fill:"#8FCBA8", ink:"#12293A", sign:"+"},
-  "Neutral":        {fill:"#5C7385", ink:"#FFFFFF", sign:"0"},
-  "Poor":           {fill:"#E0A98A", ink:"#12293A", sign:"−"},
-  "Extremely poor": {fill:"#B4552D", ink:"#FFFFFF", sign:"−"},
+  "Excellent":{fill:"#2F7A50",ink:"#FFFFFF",sign:"+"}, "Good":{fill:"#8FCBA8",ink:"#12293A",sign:"+"},
+  "Neutral":{fill:"#5C7385",ink:"#FFFFFF",sign:"0"}, "Poor":{fill:"#E0A98A",ink:"#12293A",sign:"−"},
+  "Extremely poor":{fill:"#B4552D",ink:"#FFFFFF",sign:"−"},
 };
-const BANDS = ["Excellent","Good","Neutral","Poor","Extremely poor"];
+const BANDS=["Excellent","Good","Neutral","Poor","Extremely poor"];
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const fmtDate = s => { const [y,m,d]=s.split("-"); return `${d} ${MONTHS[+m-1]} ${y}`; };
+const fmtDate = s => { if(!s) return "—"; const [y,m,d]=s.split("-"); return `${d} ${MONTHS[+m-1]} ${y}`; };
 
-let teamOn = true;
+let teamOn=true, level="all";
 
 async function init(){
-  const st = await (await fetch("/api/status")).json();
-  const [df,dt] = st.default_range;
-  $("#from").value = df; $("#to").value = dt;
+  const st=await (await fetch("/api/status")).json();
+  const [df,dt]=st.default_range; $("#from").value=df; $("#to").value=dt;
   if(!st.configured){ openModal(); } else { load(); }
 }
 function openModal(){ $("#modal").style.display="flex"; $("#cuser").focus(); }
 function closeModal(){ $("#modal").style.display="none"; }
-
-$("#creds").onclick = openModal;
-$("#ccancel").onclick = closeModal;
-$("#refresh").onclick = load;
-$("#from").onchange = load;
-$("#to").onchange = load;
-const teamEl = $("#team");
+$("#creds").onclick=openModal; $("#ccancel").onclick=closeModal;
+$("#refresh").onclick=load; $("#from").onchange=load; $("#to").onchange=load;
+const teamEl=$("#team");
 function toggleTeam(){ teamOn=!teamOn; teamEl.classList.toggle("on",teamOn); teamEl.setAttribute("aria-checked",teamOn); load(); }
-teamEl.onclick = toggleTeam;
-teamEl.onkeydown = e => { if(e.key===" "||e.key==="Enter"){ e.preventDefault(); toggleTeam(); } };
-$("#csave").onclick = async ()=>{
+teamEl.onclick=toggleTeam;
+teamEl.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); toggleTeam(); } };
+$("#levelSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+  level=b.dataset.l;
+  $("#levelSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+  load();
+});
+$("#csave").onclick=async ()=>{
   $("#cerr").textContent="";
   const payload={url:$("#curl").value,user:$("#cuser").value,pass:$("#cpass").value,satisfaction_field:$("#csat").value};
   const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-  const j=await r.json();
-  if(!r.ok){ $("#cerr").textContent=j.error||"Login failed."; return; }
+  const j=await r.json(); if(!r.ok){ $("#cerr").textContent=j.error||"Login failed."; return; }
   closeModal(); load();
 };
+
+// expand/collapse a drill row
+function tg(el){
+  const d=el.parentElement.querySelector(".ddet"); if(!d) return;
+  const open=d.style.display!=="none"; d.style.display=open?"none":"block";
+  const c=el.querySelector(".chev"); if(c) c.textContent=open?"▸":"▾";
+}
 
 async function load(){
   $("#banner").style.display="none";
   const btn=$("#refresh"); btn.disabled=true;
   for(const id of ["closed","survey","adoption"]) $("#"+id).innerHTML='<div class="loading">Loading…</div>';
   $("#kpis").innerHTML=""; $("#adoptTotals").innerHTML="";
-  const qs=new URLSearchParams({from:$("#from").value,to:$("#to").value,team:teamOn?"1":"0"});
+  const qs=new URLSearchParams({from:$("#from").value,to:$("#to").value,team:teamOn?"1":"0",level});
   try{
-    const r=await fetch("/api/metrics?"+qs);
-    const j=await r.json();
+    const r=await fetch("/api/metrics?"+qs); const j=await r.json();
     if(!r.ok){ if(j.error==="no_credentials"){ openModal(); return; } throw new Error(j.error||("HTTP "+r.status)); }
     render(j);
   }catch(e){
@@ -270,53 +295,103 @@ async function load(){
   }finally{ btn.disabled=false; }
 }
 
-// Map the live API row shape onto the design's field names.
 function norm(x){
-  return {name:x.name, level:x.level, vendor:x.vendor||"", closed:x.closed,
-          avg:x.avg_closed_per_day, responses:x.survey_responses, nps:x.nps, csat:x.csat,
-          dist:x.distribution||{}, drafted:x.drafted_closed, approved:x.approved_closed, rate:x.adoption_rate};
+  return {name:x.name,level:x.level,vendor:x.vendor||"",closed:x.closed,avg:x.avg_closed_per_day,
+    responses:x.survey_responses,nps:x.nps,csat:x.csat,dist:x.distribution||{},
+    drafted:x.drafted_closed,approved:x.approved_closed,rate:x.adoption_rate,
+    closedCases:x.closed_cases||[],surveyCases:x.survey_cases||[],adoptionCases:x.adoption_cases||[]};
 }
+
+// ---- by-day helpers (a closed case's "close day" ≈ ModifiedOn, else CreatedOn) ----
+const closeDay = c => c.updated || c.created;
+const isWknd = d => { const g=new Date(d+"T00:00:00Z").getUTCDay(); return g===0||g===6; };
+function dayList(from,to){
+  const out=[]; if(!from||!to) return out;
+  let d=new Date(from+"T00:00:00Z"); const end=new Date(to+"T00:00:00Z");
+  let guard=0;
+  while(d<=end && guard++<400){ out.push(d.toISOString().slice(0,10)); d=new Date(d.getTime()+864e5); }
+  return out;
+}
+function dailyCounts(cases){
+  const m={}; cases.forEach(c=>{ const d=closeDay(c); if(d) m[d]=(m[d]||0)+1; }); return m;
+}
+// mini per-agent sparkline over the window
+function sparkline(cases, days){
+  const m=dailyCounts(cases); const max=Math.max(1,...days.map(d=>m[d]||0));
+  return `<div class="spark" title="closed per day">${days.map(d=>`<i class="${isWknd(d)?'wknd':''}" style="height:${((m[d]||0)/max*100).toFixed(0)}%" title="${fmtDate(d)}: ${m[d]||0}"></i>`).join("")}</div>`;
+}
+
+function renderDaily(rows, range){
+  const days=dayList(range.from,range.to);
+  const all=[].concat(...rows.map(r=>r.closedCases));
+  const m=dailyCounts(all);
+  const counts=days.map(d=>m[d]||0);
+  const max=Math.max(1,...counts), total=counts.reduce((a,b)=>a+b,0);
+  const peak=Math.max(...counts), peakDay=days[counts.indexOf(peak)];
+  const busy=days.filter((d,i)=>counts[i]>0).length;
+  const avg=busy?(total/busy):0;
+  // adaptive label density so the axis never crowds
+  const step=Math.ceil(days.length/16);
+  $("#dailyStats").innerHTML=[
+    ["Peak day", peak, "var(--amber)"],
+    ["Avg / active day", avg.toFixed(1), "var(--navy)"],
+    ["Active days", busy, "var(--sec)"],
+  ].map(([l,v,c])=>`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end"><span class="eyebrow" style="font-size:9.5px">${l}</span><span class="num" style="font-size:19px;font-weight:600;color:${c}">${v}</span></div>`).join("");
+  if(!days.length){ $("#daily").innerHTML=`<div class="loading">No day range.</div>`; return; }
+  const bars=days.map((d,i)=>{
+    const n=counts[i], h=(n/max*100).toFixed(0);
+    const cls=["daycol", isWknd(d)?"weekend":"", (n===peak&&n>0&&d===peakDay)?"peak":""].join(" ").trim();
+    return `<div class="${cls}" title="${fmtDate(d)}: ${n} closed">
+      <span class="cnt">${n||""}</span><div class="bar" style="height:${Math.max(n?4:0,h)}%"></div></div>`;
+  }).join("");
+  const axis=days.map((d,i)=>`<span>${(i%step===0)?(+d.slice(8,10)):""}</span>`).join("");
+  $("#daily").innerHTML=`<div class="daychart">${bars}</div><div class="dayaxis">${axis}</div>`;
+}
+
+// ---- drill-down case tables ----
+function caseRows(cases, cols, prefix){
+  return `<div class="ddet" style="display:none">${prefix||""}<table class="ctab"><thead><tr>${cols.map(c=>`<th>${c.h}</th>`).join("")}</tr></thead>
+    <tbody>${cases.map(c=>`<tr>${cols.map(col=>`<td class="${col.cls||''}">${col.f(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+const satTag = s => { const b=BAND[s]||{fill:"#5C7385",ink:"#fff",sign:""}; return `<span class="tag" style="background:${b.fill};color:${b.ink}">${b.sign} ${esc(s)}</span>`; };
+const closedCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`,cls:"cn"},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)},{h:"Updated",f:c=>fmtDate(c.updated)}];
+const surveyCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Rating",f:c=>satTag(c.satisfaction)},{h:"Created",f:c=>fmtDate(c.created)}];
+const adoptCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Draft",f:c=>c.draft_used?`<span class="tag" style="background:var(--amber);color:#fff">used</span>`:`<span class="tag" style="background:var(--hair);color:var(--sec)">not used</span>`},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)}];
 
 function render(j){
   const t=j.totals, rows=j.by_ic.map(norm), agents=rows.length;
-  $("#periodPill").textContent = `${j.range.from===j.range.to?fmtDate(j.range.from):"month-to-date"} · ${j.range.days} days`;
-  $("#footL").textContent = `${fmtDate(j.range.from)} → ${fmtDate(j.range.to)} · ${j.team_only?"support team only":"all owners"} · pulled ${new Date(j.generated_at).toLocaleString()}`;
+  const lvlLabel = j.level==="all"?"All levels":("Level "+j.level);
+  $("#periodPill").textContent=`${j.range.from===j.range.to?fmtDate(j.range.from):"month-to-date"} · ${j.range.days} days`;
+  $("#levelPill").textContent=lvlLabel;
+  $("#footL").textContent=`${fmtDate(j.range.from)} → ${fmtDate(j.range.to)} · ${lvlLabel} · ${j.team_only?"support team only":"all owners"} · pulled ${new Date(j.generated_at).toLocaleString()}`;
 
-  // ---- KPIs ----
-  const npsTone = t.nps==null ? "#5C7385" : (t.nps>=30 ? "var(--posbar)" : "var(--neg)");
+  // KPIs
+  const npsTone=t.nps==null?"#5C7385":(t.nps>=30?"var(--posbar)":"var(--neg)");
   const kpis=[
-    {label:"Tickets closed", val:String(t.closed), suf:"", tone:"var(--teal)", gauge:"100%",
-     detail:`${j.range.days}-day window · ${agents} agents`, sample:false},
-    {label:"Survey NPS", val:t.nps==null?"—":t.nps.toFixed(1), suf:"", tone:npsTone,
-     gauge:t.nps==null?"0%":((t.nps+100)/2).toFixed(1)+"%",
-     detail:t.survey_responses?`${t.survey_responses} responses · ${t.promoters} promoters`:"no responses yet", sample:false},
-    {label:"Avg CSAT", val:t.csat==null?"—":t.csat.toFixed(2), suf:t.csat==null?"":"/ 5",
-     tone:"var(--posbar)", gauge:t.csat==null?"0%":(t.csat/5*100).toFixed(1)+"%",
-     detail:t.survey_responses?`${t.promoters} promoters · ${t.detractors} detractor${t.detractors===1?"":"s"}`:"no responses yet", sample:false},
-    {label:"AI adoption (closed)", val:t.adoption_rate==null?"—":String(Math.round(t.adoption_rate*100)),
-     suf:t.adoption_rate==null?"":"%", tone:"var(--amber)",
-     gauge:t.adoption_rate==null?"0%":(t.adoption_rate*100).toFixed(1)+"%",
-     detail:`${t.approved_closed} of ${t.drafted_closed} drafted + closed`, sample:true},
+    {label:"Tickets closed",val:String(t.closed),suf:"",tone:"var(--teal)",gauge:"100%",detail:`${j.range.days}-day window · ${agents} staff`,sample:false},
+    {label:"Survey NPS",val:t.nps==null?"—":t.nps.toFixed(1),suf:"",tone:npsTone,gauge:t.nps==null?"0%":((t.nps+100)/2).toFixed(1)+"%",detail:t.survey_responses?`${t.survey_responses} responses · ${t.promoters} promoters`:"no responses yet"},
+    {label:"Avg CSAT",val:t.csat==null?"—":t.csat.toFixed(2),suf:t.csat==null?"":"/ 5",tone:"var(--posbar)",gauge:t.csat==null?"0%":(t.csat/5*100).toFixed(1)+"%",detail:t.survey_responses?`${t.promoters} promoters · ${t.detractors} detractor${t.detractors===1?"":"s"}`:"no responses yet"},
+    {label:"AI adoption (closed)",val:t.adoption_rate==null?"—":String(Math.round(t.adoption_rate*100)),suf:t.adoption_rate==null?"":"%",tone:"var(--amber)",gauge:t.adoption_rate==null?"0%":(t.adoption_rate*100).toFixed(1)+"%",detail:`${t.approved_closed} of ${t.drafted_closed} drafted + closed`},
   ];
-  $("#kpis").innerHTML = kpis.map(k=>`
-    <div class="kpi">
-      <div class="top"><span class="eyebrow" style="font-size:10.5px">${k.label}</span>
-        ${k.sample?'<span class="sample">Sample</span>':''}</div>
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <span class="val num">${k.val}</span><span class="suf">${k.suf}</span></div>
-      <div style="display:flex;flex-direction:column;gap:9px">
-        <div class="gauge"><i style="width:${k.gauge};background:${k.tone}"></i></div>
-        <span style="font-size:11.5px;font-weight:300;color:var(--sec)">${esc(k.detail)}</span></div>
-    </div>`).join("");
+  $("#kpis").innerHTML=kpis.map(k=>`<div class="kpi"><div class="top"><span class="eyebrow" style="font-size:10.5px">${k.label}</span></div>
+    <div style="display:flex;align-items:baseline;gap:4px"><span class="val num">${k.val}</span><span class="suf">${k.suf}</span></div>
+    <div style="display:flex;flex-direction:column;gap:9px"><div class="gauge"><i style="width:${k.gauge};background:${k.tone}"></i></div>
+    <span style="font-size:11.5px;font-weight:300;color:var(--sec)">${esc(k.detail)}</span></div></div>`).join("");
 
-  // ---- Tickets closed by IC ----
-  $("#closedTotal").textContent = t.closed;
-  const ics=rows.slice().sort((a,b)=>b.closed-a.closed);
+  // Tickets closed per day (team)
+  renderDaily(rows, j.range);
+  const winDays=dayList(j.range.from,j.range.to);
+
+  // Tickets closed by IC (all staff; L1 & L2 together)
+  $("#closedTotal").textContent=t.closed;
+  const ics=rows.slice().sort((a,b)=>b.closed-a.closed||a.name.localeCompare(b.name));
   const maxClosed=Math.max(1,...ics.map(r=>r.closed));
-  const head=`<div style="display:grid;grid-template-columns:26px 1fr 74px 60px;gap:14px;align-items:center;padding:12px 0 8px" class="eyebrow"><span style="font-size:9.5px">#</span><span style="font-size:9.5px">Agent</span><span style="font-size:9.5px;text-align:right">Closed</span><span style="font-size:9.5px;text-align:right">Avg/day</span></div>`;
-  $("#closed").innerHTML = ics.length ? head + ics.map((r,i)=>{
-    const L2=r.level==="Level 2";
-    return `<div style="display:grid;grid-template-columns:26px 1fr 74px 60px;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--hair)">
+  const G="16px 26px 1fr 74px 60px";
+  const chead=`<div class="dsum static" style="grid-template-columns:${G};padding:12px 0 8px"><span></span><span class="eyebrow" style="font-size:9.5px">#</span><span class="eyebrow" style="font-size:9.5px">Agent</span><span class="eyebrow" style="font-size:9.5px;text-align:right">Closed</span><span class="eyebrow" style="font-size:9.5px;text-align:right">Avg/day</span></div>`;
+  $("#closed").innerHTML = chead + ics.map((r,i)=>{
+    const L2=r.level==="Level 2", has=r.closedCases.length>0;
+    const sum=`<div class="dsum${has?'':' static'}" style="grid-template-columns:${G}" ${has?'onclick="tg(this)"':''}>
+      <span class="chev">${has?'▸':''}</span>
       <span class="num" style="font-size:12px;font-weight:600;color:${i<3?'var(--teal)':'var(--muted)'}">${String(i+1).padStart(2,"0")}</span>
       <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -327,76 +402,68 @@ function render(j){
         <div style="height:6px;background:var(--hair);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--teal);width:${(r.closed/maxClosed*100).toFixed(1)}%"></div></div>
       </div>
       <span class="num" style="font-size:15px;font-weight:600;text-align:right;color:var(--navy)">${r.closed}</span>
-      <span class="num" style="font-size:12.5px;font-weight:400;text-align:right;color:var(--sec)">${r.avg.toFixed(2)}</span>
-    </div>`;
-  }).join("") : `<div class="loading">No data in this window.</div>`;
+      <span class="num" style="font-size:12.5px;font-weight:400;text-align:right;color:var(--sec)">${r.avg.toFixed(2)}</span></div>`;
+    const pfx = has ? `<div style="font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 2px 28px">Closed per day</div>${sparkline(r.closedCases,winDays)}` : '';
+    return `<div class="drill">${sum}${has?caseRows(r.closedCases,closedCols,pfx):''}</div>`;
+  }).join("");
 
-  // ---- Survey scores ----
   renderSurvey(j,t,rows);
 
-  // ---- Adoption ----
-  const withDraft=rows.filter(r=>r.drafted>0).sort((a,b)=>(b.rate??-1)-(a.rate??-1));
-  const maxDrafted=Math.max(1,...withDraft.map(r=>r.drafted));
-  $("#adoptTotals").innerHTML = [
-    ["Drafted + closed", t.drafted_closed, "var(--sec)"],
-    ["Draft used", t.approved_closed, "var(--warn)"],
-    ["Team rate", t.adoption_rate==null?"—":Math.round(t.adoption_rate*100)+"%", "var(--navy)"],
-  ].map(([l,v,c])=>`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">
-     <span class="eyebrow" style="font-size:9.5px">${l}</span>
-     <span class="num" style="font-size:19px;font-weight:600;color:${c}">${v}</span></div>`).join("");
-  $("#adoption").innerHTML = withDraft.length ? `<div style="padding:4px 24px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:0 40px">`+
-    withDraft.map(r=>{
-      const rate=r.rate, rateTone=rate>=0.7?"var(--navy)":rate>=0.5?"var(--sec)":"var(--muted)";
-      return `<div style="display:grid;grid-template-columns:minmax(120px,1fr) minmax(70px,140px) 58px 44px;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--hair)">
-        <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
-        <div style="height:8px;background:var(--hair);border-radius:4px;overflow:hidden;position:relative">
-          <div style="height:100%;background:rgba(200,138,46,.25);border-radius:4px;width:${(r.drafted/maxDrafted*100).toFixed(1)}%"></div>
-          <div style="position:absolute;top:0;left:0;height:100%;background:var(--amber);border-radius:4px;width:${(r.approved/maxDrafted*100).toFixed(1)}%"></div>
-        </div>
-        <span class="num" style="font-size:11.5px;font-weight:400;color:var(--muted);text-align:right">${r.approved} / ${r.drafted}</span>
-        <span class="num" style="font-size:13.5px;font-weight:600;color:${rateTone};text-align:right">${rate==null?"—":Math.round(rate*100)+"%"}</span>
-      </div>`;
-    }).join("")+`</div>` : `<div class="loading">No closed tickets with an AI draft in this window.</div>`;
+  // Adoption (all staff)
+  const adopt=rows.slice().sort((a,b)=>(b.rate??-1)-(a.rate??-1)||b.drafted-a.drafted);
+  const maxDrafted=Math.max(1,...adopt.map(r=>r.drafted));
+  $("#adoptTotals").innerHTML=[["Drafted + closed",t.drafted_closed,"var(--sec)"],["Draft used",t.approved_closed,"var(--warn)"],["Team rate",t.adoption_rate==null?"—":Math.round(t.adoption_rate*100)+"%","var(--navy)"]]
+    .map(([l,v,c])=>`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end"><span class="eyebrow" style="font-size:9.5px">${l}</span><span class="num" style="font-size:19px;font-weight:600;color:${c}">${v}</span></div>`).join("");
+  const GA="16px minmax(120px,1fr) minmax(70px,140px) 58px 44px";
+  $("#adoption").innerHTML=`<div style="padding:4px 24px 16px">`+ adopt.map(r=>{
+    const has=r.adoptionCases.length>0, rate=r.rate, rateTone=rate==null?"var(--muted)":(rate>=0.7?"var(--navy)":rate>=0.5?"var(--sec)":"var(--muted)");
+    const sum=`<div class="dsum${has?'':' static'}" style="grid-template-columns:${GA}" ${has?'onclick="tg(this)"':''}>
+      <span class="chev">${has?'▸':''}</span>
+      <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
+      <div style="height:8px;background:var(--hair);border-radius:4px;overflow:hidden;position:relative">
+        <div style="height:100%;background:var(--track);border-radius:4px;width:${(r.drafted/maxDrafted*100).toFixed(1)}%"></div>
+        <div style="position:absolute;top:0;left:0;height:100%;background:var(--amber);border-radius:4px;width:${(r.approved/maxDrafted*100).toFixed(1)}%"></div></div>
+      <span class="num" style="font-size:11.5px;font-weight:400;color:var(--muted);text-align:right">${r.approved} / ${r.drafted}</span>
+      <span class="num" style="font-size:13.5px;font-weight:600;color:${rateTone};text-align:right">${rate==null?"—":Math.round(rate*100)+"%"}</span></div>`;
+    return `<div class="drill">${sum}${has?caseRows(r.adoptionCases,adoptCols):''}</div>`;
+  }).join("") + `</div>`;
 }
 
 function renderSurvey(j,t,rows){
   if(!j.survey_available){
-    $("#survey").innerHTML = `<div style="padding:16px 24px 20px"><div class="note">Survey scores unavailable: the Case field “${esc(j.satisfaction_field)}” wasn’t found on this Creatio instance. Set the correct navigation property in the Credentials dialog to enable survey metrics.</div></div>`;
+    $("#survey").innerHTML=`<div style="padding:16px 24px 20px"><div class="note">Survey scores unavailable: the Case field “${esc(j.satisfaction_field)}” wasn’t found on this Creatio instance. Set the correct navigation property in the Credentials dialog to enable survey metrics.</div></div>`;
     return;
   }
   const resp=t.survey_responses;
-  const teamDist=BANDS.filter(b=>(t.distribution[b]||0)>0).map(b=>({
-    label:b,count:t.distribution[b],sign:BAND[b].sign,fill:BAND[b].fill,ink:BAND[b].ink,
-    width:(t.distribution[b]/(resp||1)*100).toFixed(1)+"%"}));
-  const tint = `<div style="margin:16px 24px 0;background:var(--tint);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+  const teamDist=BANDS.filter(b=>(t.distribution[b]||0)>0).map(b=>({label:b,count:t.distribution[b],sign:BAND[b].sign,fill:BAND[b].fill,ink:BAND[b].ink,width:(t.distribution[b]/(resp||1)*100).toFixed(1)+"%"}));
+  const tint=`<div style="margin:16px 24px 0;background:var(--tint);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px">
-      ${[["Team NPS",t.nps==null?"—":t.nps.toFixed(1)],["CSAT",t.csat==null?"—":t.csat.toFixed(2)],["Responses",resp]]
-        .map((p,i)=>`<div style="display:flex;flex-direction:column;gap:2px;${i?'align-items:flex-end':''}">
-          <span class="eyebrow" style="font-size:9.5px;color:var(--sec)">${p[0]}</span>
-          <span class="num" style="font-size:28px;font-weight:600;line-height:1;color:var(--navy)">${p[1]}</span></div>`).join("")}
+      ${[["Team NPS",t.nps==null?"—":t.nps.toFixed(1)],["CSAT",t.csat==null?"—":t.csat.toFixed(2)],["Responses",resp]].map((p,i)=>`<div style="display:flex;flex-direction:column;gap:2px;${i?'align-items:flex-end':''}"><span class="eyebrow" style="font-size:9.5px;color:var(--sec)">${p[0]}</span><span class="num" style="font-size:28px;font-weight:600;line-height:1;color:var(--navy)">${p[1]}</span></div>`).join("")}
     </div>
     ${resp?`<div style="display:flex;gap:3px;height:24px">${teamDist.map(d=>`<div style="border-radius:4px;display:flex;align-items:center;justify-content:center;background:${d.fill};color:${d.ink};width:${d.width};font-size:11px;font-weight:600">${d.count}</div>`).join("")}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:12px">${teamDist.map(d=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${d.fill}"></span><span style="font-size:11px;color:var(--navy)">${d.label}</span><span style="font-size:11px;font-weight:600;color:var(--sec)">${d.sign}</span></div>`).join("")}</div>`:''}
+    <div style="display:flex;flex-wrap:wrap;gap:12px">${teamDist.map(d=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${d.fill}"></span><span style="font-size:11px;color:var(--navy)">${d.label}</span><span style="font-size:11px;font-weight:600;color:var(--sec)">${d.sign}</span></div>`).join("")}</div>`:'<span style="font-size:11.5px;font-weight:300;color:var(--sec)">No survey responses in this period.</span>'}
   </div>`;
 
-  const survey=rows.filter(r=>r.responses>0).sort((a,b)=>b.responses-a.responses||(b.nps??-999)-(a.nps??-999));
-  const head=`<div style="display:grid;grid-template-columns:1fr 48px 42px;gap:12px;padding:12px 0 8px" class="eyebrow"><span style="font-size:9.5px">Agent · responses</span><span style="font-size:9.5px;text-align:right">NPS</span><span style="font-size:9.5px;text-align:right">CSAT</span></div>`;
-  const list = survey.map(r=>{
-    const npsTone=r.nps>=70?"var(--pos)":r.nps>=30?"var(--warn)":"var(--neg)";
+  const survey=rows.slice().sort((a,b)=>b.responses-a.responses||(b.nps??-999)-(a.nps??-999)||a.name.localeCompare(b.name));
+  const GS="16px 1fr 48px 42px";
+  const head=`<div class="dsum static" style="grid-template-columns:${GS};padding:12px 0 8px"><span></span><span class="eyebrow" style="font-size:9.5px">Agent · responses</span><span class="eyebrow" style="font-size:9.5px;text-align:right">NPS</span><span class="eyebrow" style="font-size:9.5px;text-align:right">CSAT</span></div>`;
+  const list=survey.map(r=>{
+    const has=r.surveyCases.length>0;
+    const npsTone=r.nps==null?"var(--muted)":(r.nps>=70?"var(--pos)":r.nps>=30?"var(--warn)":"var(--neg)");
     const segs=BANDS.filter(b=>(r.dist[b]||0)>0).map(b=>({fill:BAND[b].fill,width:((r.dist[b]||0)/r.responses*100).toFixed(1)+"%",tag:`${BAND[b].sign} ${b} ${r.dist[b]||0}`}));
-    return `<div style="display:flex;flex-direction:column;gap:8px;padding:11px 0;border-top:1px solid var(--hair)">
-      <div style="display:grid;grid-template-columns:1fr 48px 42px;gap:12px;align-items:baseline">
-        <div style="display:flex;align-items:baseline;gap:8px;min-width:0">
-          <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
-          <span style="font-size:11px;font-weight:300;color:var(--muted);white-space:nowrap">${r.responses===1?"1 response":r.responses+" responses"}</span></div>
-        <span class="num" style="font-size:13.5px;font-weight:600;text-align:right;color:${npsTone}">${r.nps.toFixed(1)}</span>
-        <span class="num" style="font-size:13.5px;font-weight:500;text-align:right;color:var(--sec)">${r.csat.toFixed(2)}</span></div>
-      <div style="display:flex;gap:3px;height:8px">${segs.map(g=>`<div style="border-radius:2px;background:${g.fill};width:${g.width}"></div>`).join("")}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px">${segs.map(g=>`<span style="font-size:10.5px;font-weight:400;color:var(--sec)">${esc(g.tag)}</span>`).join("")}</div>
-    </div>`;
+    const sum=`<div class="dsum${has?'':' static'}" style="grid-template-columns:${GS};align-items:baseline" ${has?'onclick="tg(this)"':''}>
+      <span class="chev">${has?'▸':''}</span>
+      <div style="display:flex;align-items:baseline;gap:8px;min-width:0">
+        <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
+        <span style="font-size:11px;font-weight:300;color:var(--muted);white-space:nowrap">${r.responses===0?"no responses":r.responses===1?"1 response":r.responses+" responses"}</span></div>
+      <span class="num" style="font-size:13.5px;font-weight:600;text-align:right;color:${npsTone}">${r.nps==null?"—":r.nps.toFixed(1)}</span>
+      <span class="num" style="font-size:13.5px;font-weight:500;text-align:right;color:var(--sec)">${r.csat==null?"—":r.csat.toFixed(2)}</span></div>`;
+    const strip = r.responses>0 ? `<div style="display:flex;gap:3px;height:8px;margin:0 0 6px 28px">${segs.map(g=>`<div style="border-radius:2px;background:${g.fill};width:${g.width}"></div>`).join("")}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin:0 0 4px 28px">${segs.map(g=>`<span style="font-size:10.5px;font-weight:400;color:var(--sec)">${esc(g.tag)}</span>`).join("")}</div>` : '';
+    return `<div class="drill">${sum}${strip}${has?caseRows(r.surveyCases,surveyCols):''}</div>`;
   }).join("");
-  const foot=`<p style="margin:14px 0 0;font-size:11px;font-weight:300;color:var(--muted)">Only agents with at least one survey response are listed. Negative bands carry a minus sign as well as colour.</p>`;
-  $("#survey").innerHTML = tint + `<div style="padding:8px 24px 20px">${head}${survey.length?list:'<div class="loading" style="padding:16px">No survey responses in this window.</div>'}${survey.length?foot:''}</div>`;
+  const foot=`<p style="margin:14px 0 0;font-size:11px;font-weight:300;color:var(--muted)">All support staff are listed; agents with no responses this period show —. Negative bands carry a minus sign as well as colour.</p>`;
+  $("#survey").innerHTML=tint+`<div style="padding:8px 24px 20px">${head}${list}${foot}</div>`;
 }
 
 init();
