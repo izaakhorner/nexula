@@ -18,12 +18,22 @@ browser**.
 
 ## Run it
 
+**Easiest — double-click a launcher** (starts the server and opens your browser):
+
+- **macOS / Linux:** double-click `start.command` (first time on macOS you may need to
+  right-click → Open, or run `chmod +x start.command` once).
+- **Windows:** double-click `start.bat`.
+
+**Or from a terminal:**
+
 ```bash
 # from this folder — Python 3.11+
-python3 serve.py
+python3 serve.py          # mac/Linux
+py -3 serve.py            # Windows
 ```
 
-Then open <http://localhost:8791>.
+Then open <http://localhost:8791>. Leave the window open while you use it — it's the server;
+press Ctrl+C there to stop.
 
 On first load it asks for your **Creatio URL / username / password**. Enter them and click
 **Connect** — they're validated with a real login and kept in memory only. Use **Refresh**
@@ -76,6 +86,8 @@ numbers stay comparable.
 serve.py         local web server + credential handling (stdlib only)
 metrics.py       Creatio connection + the three metric roll-ups
 index.html       the dashboard UI (single page)
+start.command    double-click launcher (macOS / Linux)
+start.bat        double-click launcher (Windows)
 .env.example     credential template — copy to .env
 ```
 
