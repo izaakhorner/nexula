@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support Performance Dashboard</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171d2b; --panel2:#1e2636; --line:#2a3245;
+    --ink:#e7ecf5; --muted:#94a1b8; --accent:#4f8cff; --good:#38c172; --warn:#f0a500; --bad:#e3524a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink)}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 24px;
+         border-bottom:1px solid var(--line);background:var(--panel)}
+  header h1{font-size:18px;margin:0;font-weight:650}
+  header .sub{color:var(--muted);font-size:12px}
+  .spacer{flex:1}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  label{color:var(--muted);font-size:12px}
+  input[type=date]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+       border-radius:8px;padding:6px 8px;font:inherit}
+  button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;
+       font:inherit;font-weight:600;cursor:pointer}
+  button.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
+  button:disabled{opacity:.5;cursor:default}
+  .toggle{display:flex;align-items:center;gap:6px;color:var(--muted)}
+  main{padding:24px;max-width:1200px;margin:0 auto}
+  .banner{background:#3a1e1e;border:1px solid var(--bad);color:#ffd7d4;border-radius:10px;
+       padding:12px 14px;margin-bottom:16px;display:none}
+  .note{background:#2a2416;border:1px solid var(--warn);color:#ffeab0;border-radius:10px;
+       padding:10px 14px;margin-bottom:16px;display:none;font-size:13px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .kpi .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .kpi .v{font-size:30px;font-weight:700;margin-top:6px}
+  .kpi .d{color:var(--muted);font-size:12px;margin-top:4px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:22px;overflow:hidden}
+  section > h2{margin:0;padding:14px 18px;font-size:15px;border-bottom:1px solid var(--line);
+       display:flex;align-items:center;gap:10px}
+  section > h2 .hint{color:var(--muted);font-weight:400;font-size:12px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;
+     position:sticky;top:0;background:var(--panel2)}
+  tbody tr:hover{background:var(--panel2)}
+  .lvl{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);
+       border-radius:20px;padding:1px 8px;margin-left:8px}
+  .pos{color:var(--good)} .neg{color:var(--bad)} .mut{color:var(--muted)}
+  .bar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;min-width:80px;display:inline-block;vertical-align:middle}
+  .bar > i{display:block;height:100%;background:var(--accent)}
+  .empty{padding:26px;text-align:center;color:var(--muted)}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;width:420px;max-width:100%}
+  .modal h3{margin:0 0 4px}
+  .modal p{color:var(--muted);margin:0 0 16px;font-size:13px}
+  .field{margin-bottom:12px}
+  .field label{display:block;margin-bottom:4px}
+  .field input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+       border-radius:8px;padding:9px 10px;font:inherit}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+  .err{color:var(--bad);font-size:13px;min-height:18px;margin-bottom:6px}
+  .loading{color:var(--muted);padding:26px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Support Performance Dashboard</h1>
+    <div class="sub">Live from Creatio &middot; tickets closed, survey scores, AI-agent adoption</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="controls">
+    <label>From <input type="date" id="from"></label>
+    <label>To <input type="date" id="to"></label>
+    <span class="toggle"><input type="checkbox" id="team" checked><label for="team">Support team only</label></span>
+    <button id="refresh">Refresh</button>
+    <button class="ghost" id="creds">Credentials</button>
+  </div>
+</header>
+
+<main>
+  <div class="banner" id="banner"></div>
+  <div class="note" id="note"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <h2>Tickets closed by IC <span class="hint">closed / resolved / cancelled cases, per agent</span></h2>
+    <div id="closed"></div>
+  </section>
+
+  <section>
+    <h2>Survey scores <span class="hint">Case satisfaction &middot; NPS = (promoters − detractors) / responses</span></h2>
+    <div id="survey"></div>
+  </section>
+
+  <section>
+    <h2>AI-agent adoption <span class="hint">closed tickets only &middot; drafts used ÷ closed tickets that had a draft</span></h2>
+    <div id="adoption"></div>
+  </section>
+
+  <p class="mut" id="footer" style="text-align:center;font-size:12px"></p>
+</main>
+
+<!-- credentials modal -->
+<div class="modal" id="modal">
+  <div class="box">
+    <h3>Connect to Creatio</h3>
+    <p>Your login is validated once and held in the server's memory for this session only —
+       never written to disk, never sent to the browser.</p>
+    <div class="err" id="cerr"></div>
+    <div class="field"><label>Creatio URL</label><input id="curl" placeholder="https://hlpos.creatio.com" value="https://hlpos.creatio.com"></div>
+    <div class="field"><label>Username</label><input id="cuser" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="cpass" type="password" autocomplete="current-password"></div>
+    <div class="field"><label>Satisfaction field <span class="mut">(optional, default SatisfactionLevel)</span></label><input id="csat" placeholder="SatisfactionLevel"></div>
+    <div class="row">
+      <button class="ghost" id="ccancel">Cancel</button>
+      <button id="csave">Connect</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const pct = x => x==null ? "—" : (x*100).toFixed(1)+"%";
+const num = x => x==null ? "—" : x;
+const esc = s => (s==null?"":String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+async function init(){
+  const st = await (await fetch("/api/status")).json();
+  const [df,dt] = st.default_range;
+  $("#from").value = df; $("#to").value = dt;
+  if(!st.configured){ openModal(); } else { load(); }
+}
+
+function openModal(){ $("#modal").style.display="flex"; $("#cuser").focus(); }
+function closeModal(){ $("#modal").style.display="none"; }
+
+$("#creds").onclick = openModal;
+$("#ccancel").onclick = closeModal;
+$("#refresh").onclick = load;
+$("#csave").onclick = async ()=>{
+  $("#cerr").textContent="";
+  const payload = { url:$("#curl").value, user:$("#cuser").value, pass:$("#cpass").value,
+                    satisfaction_field:$("#csat").value };
+  const r = await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},
+                                       body:JSON.stringify(payload)});
+  const j = await r.json();
+  if(!r.ok){ $("#cerr").textContent = j.error || "Login failed."; return; }
+  closeModal(); load();
+};
+
+async function load(){
+  const b=$("#banner"); b.style.display="none";
+  $("#note").style.display="none";
+  const btn=$("#refresh"); btn.disabled=true; btn.textContent="Loading…";
+  for(const id of ["closed","survey","adoption"]) $("#"+id).innerHTML='<div class="loading">Loading…</div>';
+  $("#kpis").innerHTML="";
+  const qs = new URLSearchParams({from:$("#from").value, to:$("#to").value,
+                                  team:$("#team").checked?"1":"0"});
+  try{
+    const r = await fetch("/api/metrics?"+qs);
+    const j = await r.json();
+    if(!r.ok){
+      if(j.error==="no_credentials"){ openModal(); return; }
+      throw new Error(j.error||("HTTP "+r.status));
+    }
+    render(j);
+  }catch(e){
+    b.textContent = "Could not load metrics: "+e.message; b.style.display="block";
+    for(const id of ["closed","survey","adoption"]) $("#"+id).innerHTML="";
+  }finally{ btn.disabled=false; btn.textContent="Refresh"; }
+}
+
+function kpi(k,v,d){ return `<div class="kpi"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d||""}</div></div>`; }
+
+function render(j){
+  const t=j.totals;
+  $("#kpis").innerHTML = [
+    kpi("Tickets closed", t.closed, `${j.range.days} day window`),
+    kpi("Survey NPS", t.nps==null?"—":t.nps, `${t.survey_responses} responses`),
+    kpi("Avg CSAT", t.csat==null?"—":t.csat+" / 5", `${t.promoters} promoters · ${t.detractors} detractors`),
+    kpi("AI adoption (closed)", pct(t.adoption_rate), `${t.approved_closed} of ${t.drafted_closed} drafted+closed`),
+  ].join("");
+
+  if(!j.survey_available){
+    const n=$("#note");
+    n.style.display="block";
+    n.textContent = `Survey scores unavailable: the Case field "${j.satisfaction_field}" wasn't found on this Creatio instance. `
+      + `Set the correct navigation property in the Credentials dialog to enable survey metrics.`;
+  }
+
+  const ic=j.by_ic;
+  // 1) closed by IC
+  const maxClosed = Math.max(1, ...ic.map(x=>x.closed));
+  $("#closed").innerHTML = ic.length ? table(
+    ["IC","Level","Closed","Avg / day",""],
+    ic.map(x=>`<tr><td>${esc(x.name)}</td><td class="mut">${esc(x.level)}</td>
+      <td><b>${x.closed}</b></td><td class="mut">${x.avg_closed_per_day}</td>
+      <td><span class="bar" style="width:140px"><i style="width:${(x.closed/maxClosed*100).toFixed(0)}%"></i></span></td></tr>`)
+  ) : empty();
+
+  // 2) survey
+  const withSurvey = ic.filter(x=>x.survey_responses>0);
+  $("#survey").innerHTML = (j.survey_available && withSurvey.length) ? table(
+    ["IC","Responses","NPS","CSAT","Excellent","Good","Neutral","Poor","Extremely poor"],
+    withSurvey.sort((a,b)=>(b.nps??-999)-(a.nps??-999)).map(x=>{
+      const d=x.distribution;
+      const npsCls = x.nps>=50?"pos":(x.nps<0?"neg":"");
+      return `<tr><td>${esc(x.name)}</td><td>${x.survey_responses}</td>
+        <td class="${npsCls}"><b>${x.nps==null?"—":x.nps}</b></td><td>${x.csat==null?"—":x.csat}</td>
+        <td class="pos">${d["Excellent"]}</td><td>${d["Good"]}</td><td class="mut">${d["Neutral"]}</td>
+        <td>${d["Poor"]}</td><td class="neg">${d["Extremely poor"]}</td></tr>`;
+    })
+  ) : `<div class="empty">${j.survey_available?"No survey responses in this window.":"Survey field not available — see the note above."}</div>`;
+
+  // 3) adoption (closed only)
+  const withDraft = ic.filter(x=>x.drafted_closed>0);
+  $("#adoption").innerHTML = withDraft.length ? table(
+    ["IC","Closed w/ draft","Draft used","Adoption",""],
+    withDraft.sort((a,b)=>(b.adoption_rate??-1)-(a.adoption_rate??-1)).map(x=>{
+      const r=x.adoption_rate;
+      const cls = r==null?"":(r>=0.5?"pos":(r<0.2?"neg":""));
+      return `<tr><td>${esc(x.name)}</td><td>${x.drafted_closed}</td><td>${x.approved_closed}</td>
+        <td class="${cls}"><b>${pct(r)}</b></td>
+        <td><span class="bar" style="width:140px"><i style="width:${r==null?0:(r*100).toFixed(0)}%"></i></span></td></tr>`;
+    })
+  ) : `<div class="empty">No closed tickets with an AI draft in this window.</div>`;
+
+  const gen = new Date(j.generated_at).toLocaleString();
+  $("#footer").textContent = `Range ${j.range.from} → ${j.range.to} · ${j.team_only?"support team only":"all owners"} · pulled ${gen}`;
+}
+
+function table(cols, rows){
+  return `<div style="overflow-x:auto"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
+    <tbody>${rows.join("")}</tbody></table></div>`;
+}
+function empty(){ return `<div class="empty">No data in this window.</div>`; }
+
+init();
+</script>
+</body>
+</html>

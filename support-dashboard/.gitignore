@@ -1,0 +1,6 @@
+# Never commit real Creatio credentials.
+.env
+
+# Python
+__pycache__/
+*.pyc
