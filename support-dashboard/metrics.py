@@ -217,7 +217,8 @@ def _fetch_drafted_cases(base: str, opener, csrf: str,
                          date_from: str | None, date_to: str | None,
                          level: str | None = None) -> list[dict]:
     """Cases that have an AI draft (UsrAiDraftText ne null) in the date window - the adoption universe."""
-    select = "Id,Number,Subject,CreatedOn,ModifiedOn,ModifiedById,UsrAiApproved"
+    select = ("Id,Number,Subject,CreatedOn,ModifiedOn,ModifiedById,"
+              "UsrAiApproved,UsrAiDraftDeflected,UsrAiDraftModified")
     expand = "Status($select=Name),Owner($select=Id,Name),Group($select=Name)"
     filt = "UsrAiDraftText ne null" + _date_filter(date_from, date_to) + _level_filter(level)
     return _page_cases(base, opener, csrf, select, expand, filt)
@@ -246,6 +247,15 @@ def _attribute(r: dict) -> str:
     return "Unassigned"
 
 
+def _draft_state(r: dict) -> str:
+    """AI-draft outcome for a drafted case: accepted (sent as-is) / edited / not used.
+    Deflected is the authoritative 'as-is' flag; fall back to NOT-modified when it's unset."""
+    if not _is_true(r, "UsrAiApproved"):
+        return "not used"
+    as_is = _is_true(r, "UsrAiDraftDeflected") or not _is_true(r, "UsrAiDraftModified")
+    return "accepted" if as_is else "edited"
+
+
 def _sat_name(r: dict, sat_field: str) -> str | None:
     node = r.get(sat_field) or {}
     name = (node.get("Name") or "").strip()
@@ -267,7 +277,9 @@ def _blank_ic() -> dict:
         "distribution": {"Excellent": 0, "Good": 0, "Neutral": 0, "Poor": 0, "Extremely poor": 0},
         # adoption (closed cases with an AI draft)
         "drafted_closed": 0,
-        "approved_closed": 0,
+        "approved_closed": 0,   # used = accepted + edited
+        "accepted_closed": 0,   # draft sent as-is (deflected, no edit)
+        "edited_closed": 0,     # draft sent but modified first
         # drill-down case lists (populated per widget)
         "closed_cases": [],
         "survey_cases": [],
@@ -340,6 +352,10 @@ def collect(creds: dict | None = None, date_from: str | None = None,
         ic_level[canon] = lvl
         ic_vendor[canon] = vend
 
+    # Case Id -> AI-draft state, so the closed-tickets drill-down can colour each case by whether
+    # (and how) its AI draft was used, using the same accepted/edited/not-used palette.
+    draft_by_id = {r.get("Id"): _draft_state(r) for r in drafted_rows if r.get("Id")}
+
     # --- 1) Tickets closed by IC  +  2) survey scores (over all cases in window) ---
     for r in all_rows:
         person = _attribute(r)
@@ -352,7 +368,8 @@ def collect(creds: dict | None = None, date_from: str | None = None,
         sname = _sat_name(r, sat_field) if survey_ok else None
         if _is_done(r):
             rec["closed"] += 1
-            rec["closed_cases"].append(_case_base(r))
+            rec["closed_cases"].append({**_case_base(r),
+                                        "draft_state": draft_by_id.get(r.get("Id"), "none")})
         if sname:
             key = sname.strip()
             low = key.lower()
@@ -379,11 +396,16 @@ def collect(creds: dict | None = None, date_from: str | None = None,
         if team_only and not on_team:
             continue
         rec = ic[name]
-        used = _is_true(r, "UsrAiApproved")
+        state = _draft_state(r)          # accepted / edited / not used
         rec["drafted_closed"] += 1
-        if used:
+        if state == "accepted":
             rec["approved_closed"] += 1
-        rec["adoption_cases"].append({**_case_base(r), "draft_used": used})
+            rec["accepted_closed"] += 1
+        elif state == "edited":
+            rec["approved_closed"] += 1
+            rec["edited_closed"] += 1
+        rec["adoption_cases"].append({**_case_base(r),
+                                      "draft_used": state != "not used", "draft_state": state})
 
     days = _distinct_days(all_rows, date_from, date_to)
 
@@ -419,6 +441,8 @@ def collect(creds: dict | None = None, date_from: str | None = None,
             "distribution": rec["distribution"],
             "drafted_closed": rec["drafted_closed"],
             "approved_closed": rec["approved_closed"],
+            "accepted_closed": rec["accepted_closed"],
+            "edited_closed": rec["edited_closed"],
             "adoption_rate": adoption(rec),
             # drill-down case detail (newest first)
             "closed_cases": newest(rec["closed_cases"]),
@@ -437,6 +461,8 @@ def collect(creds: dict | None = None, date_from: str | None = None,
                     for x in by_ic for k, v in x["distribution"].items())
     tot_drafted_closed = sum(x["drafted_closed"] for x in by_ic)
     tot_approved_closed = sum(x["approved_closed"] for x in by_ic)
+    tot_accepted_closed = sum(x["accepted_closed"] for x in by_ic)
+    tot_edited_closed = sum(x["edited_closed"] for x in by_ic)
 
     overall_dist = {k: 0 for k in ("Excellent", "Good", "Neutral", "Poor", "Extremely poor")}
     for x in by_ic:
@@ -461,6 +487,9 @@ def collect(creds: dict | None = None, date_from: str | None = None,
             "distribution": overall_dist,
             "drafted_closed": tot_drafted_closed,
             "approved_closed": tot_approved_closed,
+            "accepted_closed": tot_accepted_closed,
+            "edited_closed": tot_edited_closed,
+            "not_used_closed": tot_drafted_closed - tot_approved_closed,
             "adoption_rate": round(tot_approved_closed / tot_drafted_closed, 4)
             if tot_drafted_closed else None,
         },

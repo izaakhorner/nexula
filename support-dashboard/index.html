@@ -13,7 +13,9 @@
     --tint:#DCEEF2; --teal:#26707F; --teal2:#5FB2C4; --teal3:#91C8CD;
     --sec:#3D505E; --muted:#5C7385; --navymuted:#8FA6B4;
     --pos:#2F7A50; --posbar:#3D8F5F; --warn:#A0691B; --neg:#B4552D;
-    --amber:#C8791E; --track:#6E93A3;  /* adoption: warm "used" vs cool "not used" — high contrast */
+    /* adoption breakdown — all from the H&L brand palette, high contrast:
+       accepted = teal accent · edited = amber accent · not used = cool neutral */
+    --accepted:#26707F; --amber:#C88A2E; --track:#AEC4CC;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg)}
@@ -114,10 +116,10 @@
   .daychart .daycol:hover .bar{opacity:.8}
   .dayaxis{display:flex;gap:3px;padding:0 24px 16px}
   .dayaxis span{flex:1;text-align:center;font-size:9px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden}
-  /* per-agent daily sparkline in drill-downs */
-  .spark{display:flex;align-items:flex-end;gap:2px;height:34px;margin:2px 0 10px 28px}
-  .spark i{flex:1;background:var(--teal);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
-  .spark i.wknd{background:#C3D0D6}
+  /* per-agent mini day chart in the closed drill-down */
+  .daychart.mini{height:92px;padding:6px 0 4px}
+  .daychart.mini .bar{max-width:20px}
+  .daychart.mini .cnt{font-size:9px}
 
   @media (max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr)} .main{grid-template-columns:1fr} .daycol .cnt{display:none} }
 </style>
@@ -208,8 +210,9 @@
     </div>
     <div id="adoption"></div>
     <div style="display:flex;align-items:center;gap:18px;padding:0 24px 18px;font-size:11px;font-weight:300;color:var(--muted);flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--amber)"></span><span>Draft used</span></div>
-      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--track)"></span><span>Drafted, not used — bar length is drafted volume relative to the busiest agent</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--accepted)"></span><span>Accepted — draft sent as-is</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--amber)"></span><span>Edited — draft modified before sending</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--track)"></span><span>Not used — bar length is drafted volume relative to the busiest agent</span></div>
     </div>
   </section>
 
@@ -299,6 +302,7 @@ function norm(x){
   return {name:x.name,level:x.level,vendor:x.vendor||"",closed:x.closed,avg:x.avg_closed_per_day,
     responses:x.survey_responses,nps:x.nps,csat:x.csat,dist:x.distribution||{},
     drafted:x.drafted_closed,approved:x.approved_closed,rate:x.adoption_rate,
+    accepted:x.accepted_closed||0,edited:x.edited_closed||0,notused:(x.drafted_closed||0)-(x.approved_closed||0),
     closedCases:x.closed_cases||[],surveyCases:x.survey_cases||[],adoptionCases:x.adoption_cases||[]};
 }
 
@@ -315,10 +319,16 @@ function dayList(from,to){
 function dailyCounts(cases){
   const m={}; cases.forEach(c=>{ const d=closeDay(c); if(d) m[d]=(m[d]||0)+1; }); return m;
 }
-// mini per-agent sparkline over the window
-function sparkline(cases, days){
-  const m=dailyCounts(cases); const max=Math.max(1,...days.map(d=>m[d]||0));
-  return `<div class="spark" title="closed per day">${days.map(d=>`<i class="${isWknd(d)?'wknd':''}" style="height:${((m[d]||0)/max*100).toFixed(0)}%" title="${fmtDate(d)}: ${m[d]||0}"></i>`).join("")}</div>`;
+// per-agent day chart: a labelled mini bar chart (count above each bar, day number below)
+function agentDayChart(cases, days){
+  const m=dailyCounts(cases); const counts=days.map(d=>m[d]||0);
+  const max=Math.max(1,...counts); const step=Math.ceil(days.length/20);
+  const bars=days.map((d,i)=>{
+    const n=counts[i], cls=["daycol",isWknd(d)?"weekend":""].join(" ").trim();
+    return `<div class="${cls}" title="${fmtDate(d)}: ${n} closed"><span class="cnt">${n||""}</span><div class="bar" style="height:${n?Math.max(6,(n/max*100)).toFixed(0):0}%"></div></div>`;
+  }).join("");
+  const axis=days.map((d,i)=>`<span>${i%step===0?(+d.slice(8,10)):""}</span>`).join("");
+  return `<div class="daychart mini">${bars}</div><div class="dayaxis">${axis}</div>`;
 }
 
 function renderDaily(rows, range){
@@ -354,9 +364,11 @@ function caseRows(cases, cols, prefix){
     <tbody>${cases.map(c=>`<tr>${cols.map(col=>`<td class="${col.cls||''}">${col.f(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 const satTag = s => { const b=BAND[s]||{fill:"#5C7385",ink:"#fff",sign:""}; return `<span class="tag" style="background:${b.fill};color:${b.ink}">${b.sign} ${esc(s)}</span>`; };
-const closedCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`,cls:"cn"},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)},{h:"Updated",f:c=>fmtDate(c.updated)}];
+const draftCell=s=>(!s||s==="none")?`<span style="color:var(--muted)">—</span>`:stateTag(s);
+const closedCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`,cls:"cn"},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"AI draft",f:c=>draftCell(c.draft_state)},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)},{h:"Updated",f:c=>fmtDate(c.updated)}];
 const surveyCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Rating",f:c=>satTag(c.satisfaction)},{h:"Created",f:c=>fmtDate(c.created)}];
-const adoptCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Draft",f:c=>c.draft_used?`<span class="tag" style="background:var(--amber);color:#fff">used</span>`:`<span class="tag" style="background:var(--hair);color:var(--sec)">not used</span>`},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)}];
+const stateTag=s=>{const m={accepted:["var(--accepted)","#fff","accepted"],edited:["var(--amber)","#fff","edited"],"not used":["var(--track)","var(--navy)","not used"]}[s]||["var(--hair)","var(--sec)",s]; return `<span class="tag" style="background:${m[0]};color:${m[1]}">${m[2]}</span>`;};
+const adoptCols=[{h:"Case",f:c=>`<span class="cn">${esc(c.number)}</span>`},{h:"Subject",f:c=>`<span class="subj">${esc(c.subject)}</span>`},{h:"Draft",f:c=>stateTag(c.draft_state||(c.draft_used?"edited":"not used"))},{h:"Status",f:c=>esc(c.status)},{h:"Created",f:c=>fmtDate(c.created)}];
 
 function render(j){
   const t=j.totals, rows=j.by_ic.map(norm), agents=rows.length;
@@ -403,7 +415,7 @@ function render(j){
       </div>
       <span class="num" style="font-size:15px;font-weight:600;text-align:right;color:var(--navy)">${r.closed}</span>
       <span class="num" style="font-size:12.5px;font-weight:400;text-align:right;color:var(--sec)">${r.avg.toFixed(2)}</span></div>`;
-    const pfx = has ? `<div style="font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 2px 28px">Closed per day</div>${sparkline(r.closedCases,winDays)}` : '';
+    const pfx = has ? `<div style="font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 2px">Closed per day</div>${agentDayChart(r.closedCases,winDays)}` : '';
     return `<div class="drill">${sum}${has?caseRows(r.closedCases,closedCols,pfx):''}</div>`;
   }).join("");
 
@@ -412,17 +424,26 @@ function render(j){
   // Adoption (all staff)
   const adopt=rows.slice().sort((a,b)=>(b.rate??-1)-(a.rate??-1)||b.drafted-a.drafted);
   const maxDrafted=Math.max(1,...adopt.map(r=>r.drafted));
-  $("#adoptTotals").innerHTML=[["Drafted + closed",t.drafted_closed,"var(--sec)"],["Draft used",t.approved_closed,"var(--warn)"],["Team rate",t.adoption_rate==null?"—":Math.round(t.adoption_rate*100)+"%","var(--navy)"]]
+  $("#adoptTotals").innerHTML=[
+      ["Accepted",t.accepted_closed,"var(--accepted)"],
+      ["Edited",t.edited_closed,"var(--amber)"],
+      ["Not used",t.not_used_closed,"var(--track)"],
+      ["Team rate",t.adoption_rate==null?"—":Math.round(t.adoption_rate*100)+"%","var(--navy)"]]
     .map(([l,v,c])=>`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end"><span class="eyebrow" style="font-size:9.5px">${l}</span><span class="num" style="font-size:19px;font-weight:600;color:${c}">${v}</span></div>`).join("");
   const GA="16px minmax(120px,1fr) minmax(70px,140px) 58px 44px";
   $("#adoption").innerHTML=`<div style="padding:4px 24px 16px">`+ adopt.map(r=>{
     const has=r.adoptionCases.length>0, rate=r.rate, rateTone=rate==null?"var(--muted)":(rate>=0.7?"var(--navy)":rate>=0.5?"var(--sec)":"var(--muted)");
+    // full bar width = drafted volume relative to busiest agent; segments = accepted / edited / not used
+    const w=r.drafted?(r.drafted/maxDrafted*100):0;
+    const seg=(n)=>r.drafted?(n/r.drafted*100).toFixed(1)+"%":"0";
     const sum=`<div class="dsum${has?'':' static'}" style="grid-template-columns:${GA}" ${has?'onclick="tg(this)"':''}>
       <span class="chev">${has?'▸':''}</span>
       <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
-      <div style="height:8px;background:var(--hair);border-radius:4px;overflow:hidden;position:relative">
-        <div style="height:100%;background:var(--track);border-radius:4px;width:${(r.drafted/maxDrafted*100).toFixed(1)}%"></div>
-        <div style="position:absolute;top:0;left:0;height:100%;background:var(--amber);border-radius:4px;width:${(r.approved/maxDrafted*100).toFixed(1)}%"></div></div>
+      <div style="height:8px;background:var(--hair);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${w.toFixed(1)}%;display:flex" title="${r.accepted} accepted · ${r.edited} edited · ${r.notused} not used">
+          <div style="background:var(--accepted);width:${seg(r.accepted)}"></div>
+          <div style="background:var(--amber);width:${seg(r.edited)}"></div>
+          <div style="background:var(--track);width:${seg(r.notused)}"></div></div></div>
       <span class="num" style="font-size:11.5px;font-weight:400;color:var(--muted);text-align:right">${r.approved} / ${r.drafted}</span>
       <span class="num" style="font-size:13.5px;font-weight:600;color:${rateTone};text-align:right">${rate==null?"—":Math.round(rate*100)+"%"}</span></div>`;
     return `<div class="drill">${sum}${has?caseRows(r.adoptionCases,adoptCols):''}</div>`;
