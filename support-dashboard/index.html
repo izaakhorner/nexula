@@ -4,131 +4,227 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Support Performance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0f1420; --panel:#171d2b; --panel2:#1e2636; --line:#2a3245;
-    --ink:#e7ecf5; --muted:#94a1b8; --accent:#4f8cff; --good:#38c172; --warn:#f0a500; --bad:#e3524a;
+    --bg:#F2F6F8; --navy:#12293A; --card:#FFFFFF; --border:#DDE6EA; --hair:#ECF1F3;
+    --tint:#DCEEF2; --teal:#26707F; --teal2:#5FB2C4; --teal3:#91C8CD;
+    --sec:#3D505E; --muted:#5C7385; --navymuted:#8FA6B4;
+    --pos:#2F7A50; --posbar:#3D8F5F; --warn:#A0691B; --neg:#B4552D; --amber:#C88A2E;
   }
   *{box-sizing:border-box}
-  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-       background:var(--bg);color:var(--ink)}
-  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 24px;
-         border-bottom:1px solid var(--line);background:var(--panel)}
-  header h1{font-size:18px;margin:0;font-weight:650}
-  header .sub{color:var(--muted);font-size:12px}
-  .spacer{flex:1}
+  html,body{margin:0;padding:0;background:var(--bg)}
+  body{font-family:Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--navy);
+       padding-bottom:56px}
+  h1,h2,p{margin:0}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  .num{font-variant-numeric:tabular-nums}
+  .eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+  /* header band */
+  .band{background:var(--navy);padding:18px 0}
+  .band .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .badge{background:#fff;border-radius:12px;padding:10px 16px;font-size:15px;font-weight:700;
+         color:var(--navy);letter-spacing:-.01em;flex:none}
+  .titles{display:flex;flex-direction:column;gap:2px;flex:1;min-width:330px}
+  .titles h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.01em}
+  .titles p{font-size:12.5px;font-weight:300;color:var(--teal3)}
   .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  label{color:var(--muted);font-size:12px}
-  input[type=date]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
-       border-radius:8px;padding:6px 8px;font:inherit}
-  button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;
-       font:inherit;font-weight:600;cursor:pointer}
-  button.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
-  button:disabled{opacity:.5;cursor:default}
-  .toggle{display:flex;align-items:center;gap:6px;color:var(--muted)}
-  main{padding:24px;max-width:1200px;margin:0 auto}
-  .banner{background:#3a1e1e;border:1px solid var(--bad);color:#ffd7d4;border-radius:10px;
-       padding:12px 14px;margin-bottom:16px;display:none}
-  .note{background:#2a2416;border:1px solid var(--warn);color:#ffeab0;border-radius:10px;
-       padding:10px 14px;margin-bottom:16px;display:none;font-size:13px}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
-  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .kpi .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
-  .kpi .v{font-size:30px;font-weight:700;margin-top:6px}
-  .kpi .d{color:var(--muted);font-size:12px;margin-top:4px}
-  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:22px;overflow:hidden}
-  section > h2{margin:0;padding:14px 18px;font-size:15px;border-bottom:1px solid var(--line);
-       display:flex;align-items:center;gap:10px}
-  section > h2 .hint{color:var(--muted);font-weight:400;font-size:12px}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-  th:first-child,td:first-child{text-align:left}
-  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;
-     position:sticky;top:0;background:var(--panel2)}
-  tbody tr:hover{background:var(--panel2)}
-  .lvl{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);
-       border-radius:20px;padding:1px 8px;margin-left:8px}
-  .pos{color:var(--good)} .neg{color:var(--bad)} .mut{color:var(--muted)}
-  .bar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;min-width:80px;display:inline-block;vertical-align:middle}
-  .bar > i{display:block;height:100%;background:var(--accent)}
-  .empty{padding:26px;text-align:center;color:var(--muted)}
-  /* modal */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}
-  .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;width:420px;max-width:100%}
-  .modal h3{margin:0 0 4px}
-  .modal p{color:var(--muted);margin:0 0 16px;font-size:13px}
+  .ctl{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.08);
+       border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px}
+  .ctl label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--navymuted)}
+  .ctl input[type=date]{background:transparent;border:0;color:#fff;font:inherit;font-size:12.5px;
+       font-weight:500;color-scheme:dark;padding:0;cursor:pointer}
+  .switch{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+  .switch .track{width:30px;height:17px;border-radius:9px;background:rgba(255,255,255,.25);
+       position:relative;flex:none;transition:background .15s}
+  .switch .knob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+       background:#fff;transition:left .15s}
+  .switch.on .track{background:var(--teal2)}
+  .switch.on .knob{left:15px}
+  .switch span.lbl{font-size:12.5px;font-weight:400;color:#fff}
+  .btn{display:flex;align-items:center;gap:7px;background:var(--teal2);border:0;border-radius:8px;
+       padding:9px 15px;font:inherit;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer}
+  .btn:hover{background:var(--teal3)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .btn.link{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff}
+  .btn.link:hover{background:rgba(255,255,255,.16)}
+
+  .body{display:flex;flex-direction:column;gap:20px}
+  .period{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0 0;flex-wrap:wrap}
+  .pill{background:var(--tint);color:var(--navy);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .card-head{padding:20px 24px 16px;border-bottom:1px solid var(--hair)}
+  .card-head h2{font-size:16px;font-weight:600;letter-spacing:-.01em;color:var(--navy)}
+  .card-head p{font-size:11.5px;font-weight:300;color:var(--sec);text-wrap:pretty}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px 18px;
+       display:flex;flex-direction:column;gap:14px}
+  .kpi .top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:20px}
+  .kpi .val{font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--navy)}
+  .kpi .suf{font-size:15px;font-weight:400;color:var(--muted)}
+  .gauge{height:4px;background:var(--hair);border-radius:2px;overflow:hidden}
+  .gauge>i{display:block;height:100%;border-radius:2px}
+  .sample{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);
+       background:rgba(200,138,46,.14);border-radius:4px;padding:3px 6px;flex:none}
+
+  .main{display:grid;grid-template-columns:1.42fr 1fr;gap:20px;align-items:start}
+  .total{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .total .n{font-size:22px;font-weight:600;color:var(--teal);line-height:1}
+
+  .banner{background:#fbe9e6;border:1px solid var(--neg);color:#7a2f18;border-radius:10px;
+       padding:12px 14px;display:none;font-size:13px}
+  .note{background:#fbf1dd;border:1px solid var(--warn);color:#6e470f;border-radius:10px;
+       padding:12px 14px;font-size:12.5px}
+  .loading{padding:26px;text-align:center;color:var(--muted);font-weight:300}
+
+  footer{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:4px;
+       font-size:11px;font-weight:300;color:var(--muted);flex-wrap:wrap}
+
+  /* credentials modal */
+  .modal{position:fixed;inset:0;background:rgba(18,41,58,.55);display:none;align-items:center;
+       justify-content:center;padding:20px;z-index:20}
+  .modal .box{background:#fff;border-radius:14px;padding:24px;width:430px;max-width:100%;
+       border:1px solid var(--border)}
+  .modal h3{margin:0 0 4px;font-size:18px;font-weight:600;color:var(--navy)}
+  .modal p{color:var(--sec);margin:0 0 16px;font-size:12.5px;font-weight:300}
   .field{margin-bottom:12px}
-  .field label{display:block;margin-bottom:4px}
-  .field input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
-       border-radius:8px;padding:9px 10px;font:inherit}
+  .field label{display:block;margin-bottom:5px;font-size:11px;font-weight:600;color:var(--muted);
+       letter-spacing:.04em}
+  .field input{width:100%;background:#fff;border:1px solid var(--border);color:var(--navy);
+       border-radius:8px;padding:9px 11px;font:inherit;font-size:13px}
+  .field input:focus{outline:none;border-color:var(--teal2)}
   .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
-  .err{color:var(--bad);font-size:13px;min-height:18px;margin-bottom:6px}
-  .loading{color:var(--muted);padding:26px;text-align:center}
+  .modal .btn{color:var(--navy)}
+  .btn.ghost{background:var(--hair);color:var(--navy)}
+  .btn.ghost:hover{background:#e2e9ec}
+  .err{color:var(--neg);font-size:12.5px;min-height:18px;margin-bottom:6px}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .main{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>Support Performance Dashboard</h1>
-    <div class="sub">Live from Creatio &middot; tickets closed, survey scores, AI-agent adoption</div>
-  </div>
-  <div class="spacer"></div>
-  <div class="controls">
-    <label>From <input type="date" id="from"></label>
-    <label>To <input type="date" id="to"></label>
-    <span class="toggle"><input type="checkbox" id="team" checked><label for="team">Support team only</label></span>
-    <button id="refresh">Refresh</button>
-    <button class="ghost" id="creds">Credentials</button>
-  </div>
-</header>
 
-<main>
+<div class="band">
+  <div class="wrap">
+    <div class="badge">H&amp;L</div>
+    <div class="titles">
+      <h1>Support Performance Dashboard</h1>
+      <p>Tickets closed, survey scores and AI-agent adoption</p>
+    </div>
+    <div class="controls">
+      <div class="ctl">
+        <label>From</label><input type="date" id="from">
+        <span style="color:rgba(255,255,255,.25)">·</span>
+        <label>To</label><input type="date" id="to">
+      </div>
+      <div class="switch on" id="team" role="switch" aria-checked="true" tabindex="0">
+        <span class="track"><span class="knob"></span></span>
+        <span class="lbl">Support team only</span>
+      </div>
+      <button class="btn" id="refresh"><span style="font-size:14px;line-height:1">↻</span><span>Refresh</span></button>
+      <button class="btn link" id="creds">Credentials</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap body">
+  <div class="period">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="eyebrow" style="letter-spacing:.14em">Reporting period</span>
+      <span class="pill" id="periodPill">—</span>
+    </div>
+    <span style="font-size:11.5px;font-weight:300;color:var(--muted)">Closed and survey figures are live from Creatio. AI adoption is sample data until wired up.</span>
+  </div>
+
   <div class="banner" id="banner"></div>
-  <div class="note" id="note"></div>
 
-  <div class="kpis" id="kpis"></div>
+  <section class="kpis" id="kpis"></section>
 
-  <section>
-    <h2>Tickets closed by IC <span class="hint">closed / resolved / cancelled cases, per agent</span></h2>
-    <div id="closed"></div>
+  <section class="main">
+    <div class="card">
+      <div class="card-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h2>Tickets closed by IC</h2>
+          <p style="max-width:420px">Closed, resolved and cancelled cases attributed to each agent as owner.</p>
+        </div>
+        <div class="total"><span class="n num" id="closedTotal">—</span><span class="eyebrow" style="font-size:9.5px">total</span></div>
+      </div>
+      <div style="padding:0 24px 16px" id="closed"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Survey scores</h2>
+        <p>NPS = (promoters − detractors) / responses × 100. CSAT is the mean 1–5 rating.</p>
+      </div>
+      <div id="survey"></div>
+    </div>
   </section>
 
-  <section>
-    <h2>Survey scores <span class="hint">Case satisfaction &middot; NPS = (promoters − detractors) / responses</span></h2>
-    <div id="survey"></div>
-  </section>
-
-  <section>
-    <h2>AI-agent adoption <span class="hint">closed tickets only &middot; drafts used ÷ closed tickets that had a draft</span></h2>
+  <section class="card">
+    <div class="card-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <h2>AI-agent adoption</h2>
+          <span class="sample" style="padding:3px 7px">Sample data</span>
+        </div>
+        <p style="max-width:560px">Closed tickets only: of closed cases that had an AI draft, the share where the draft was used. Illustrative until live Creatio numbers land.</p>
+      </div>
+      <div style="display:flex;gap:26px" id="adoptTotals"></div>
+    </div>
     <div id="adoption"></div>
+    <div style="display:flex;align-items:center;gap:18px;padding:0 24px 18px;font-size:11px;font-weight:300;color:var(--muted);flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:var(--amber)"></span><span>Draft used</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:6px;border-radius:3px;background:rgba(200,138,46,.25)"></span><span>Drafted, not used — bar length is drafted volume relative to the busiest agent</span></div>
+    </div>
   </section>
 
-  <p class="mut" id="footer" style="text-align:center;font-size:12px"></p>
-</main>
+  <footer>
+    <span id="footL">—</span>
+    <span>Live from Creatio · adoption figures are sample data</span>
+  </footer>
+</div>
 
-<!-- credentials modal -->
 <div class="modal" id="modal">
   <div class="box">
     <h3>Connect to Creatio</h3>
-    <p>Your login is validated once and held in the server's memory for this session only —
-       never written to disk, never sent to the browser.</p>
+    <p>Your login is validated once and held in the server's memory for this session only — never written to disk, never sent to the browser.</p>
     <div class="err" id="cerr"></div>
-    <div class="field"><label>Creatio URL</label><input id="curl" placeholder="https://hlpos.creatio.com" value="https://hlpos.creatio.com"></div>
+    <div class="field"><label>Creatio URL</label><input id="curl" value="https://hlpos.creatio.com"></div>
     <div class="field"><label>Username</label><input id="cuser" autocomplete="username"></div>
     <div class="field"><label>Password</label><input id="cpass" type="password" autocomplete="current-password"></div>
-    <div class="field"><label>Satisfaction field <span class="mut">(optional, default SatisfactionLevel)</span></label><input id="csat" placeholder="SatisfactionLevel"></div>
+    <div class="field"><label>Satisfaction field (optional, default SatisfactionLevel)</label><input id="csat" placeholder="SatisfactionLevel"></div>
     <div class="row">
-      <button class="ghost" id="ccancel">Cancel</button>
-      <button id="csave">Connect</button>
+      <button class="btn ghost" id="ccancel">Cancel</button>
+      <button class="btn" id="csave">Connect</button>
     </div>
   </div>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
-const pct = x => x==null ? "—" : (x*100).toFixed(1)+"%";
-const num = x => x==null ? "—" : x;
 const esc = s => (s==null?"":String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+const BAND = {
+  "Excellent":      {fill:"#2F7A50", ink:"#FFFFFF", sign:"+"},
+  "Good":           {fill:"#8FCBA8", ink:"#12293A", sign:"+"},
+  "Neutral":        {fill:"#5C7385", ink:"#FFFFFF", sign:"0"},
+  "Poor":           {fill:"#E0A98A", ink:"#12293A", sign:"−"},
+  "Extremely poor": {fill:"#B4552D", ink:"#FFFFFF", sign:"−"},
+};
+const BANDS = ["Excellent","Good","Neutral","Poor","Extremely poor"];
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmtDate = s => { const [y,m,d]=s.split("-"); return `${d} ${MONTHS[+m-1]} ${y}`; };
+
+let teamOn = true;
 
 async function init(){
   const st = await (await fetch("/api/status")).json();
@@ -136,110 +232,172 @@ async function init(){
   $("#from").value = df; $("#to").value = dt;
   if(!st.configured){ openModal(); } else { load(); }
 }
-
 function openModal(){ $("#modal").style.display="flex"; $("#cuser").focus(); }
 function closeModal(){ $("#modal").style.display="none"; }
 
 $("#creds").onclick = openModal;
 $("#ccancel").onclick = closeModal;
 $("#refresh").onclick = load;
+$("#from").onchange = load;
+$("#to").onchange = load;
+const teamEl = $("#team");
+function toggleTeam(){ teamOn=!teamOn; teamEl.classList.toggle("on",teamOn); teamEl.setAttribute("aria-checked",teamOn); load(); }
+teamEl.onclick = toggleTeam;
+teamEl.onkeydown = e => { if(e.key===" "||e.key==="Enter"){ e.preventDefault(); toggleTeam(); } };
 $("#csave").onclick = async ()=>{
   $("#cerr").textContent="";
-  const payload = { url:$("#curl").value, user:$("#cuser").value, pass:$("#cpass").value,
-                    satisfaction_field:$("#csat").value };
-  const r = await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},
-                                       body:JSON.stringify(payload)});
-  const j = await r.json();
-  if(!r.ok){ $("#cerr").textContent = j.error || "Login failed."; return; }
+  const payload={url:$("#curl").value,user:$("#cuser").value,pass:$("#cpass").value,satisfaction_field:$("#csat").value};
+  const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const j=await r.json();
+  if(!r.ok){ $("#cerr").textContent=j.error||"Login failed."; return; }
   closeModal(); load();
 };
 
 async function load(){
-  const b=$("#banner"); b.style.display="none";
-  $("#note").style.display="none";
-  const btn=$("#refresh"); btn.disabled=true; btn.textContent="Loading…";
+  $("#banner").style.display="none";
+  const btn=$("#refresh"); btn.disabled=true;
   for(const id of ["closed","survey","adoption"]) $("#"+id).innerHTML='<div class="loading">Loading…</div>';
-  $("#kpis").innerHTML="";
-  const qs = new URLSearchParams({from:$("#from").value, to:$("#to").value,
-                                  team:$("#team").checked?"1":"0"});
+  $("#kpis").innerHTML=""; $("#adoptTotals").innerHTML="";
+  const qs=new URLSearchParams({from:$("#from").value,to:$("#to").value,team:teamOn?"1":"0"});
   try{
-    const r = await fetch("/api/metrics?"+qs);
-    const j = await r.json();
-    if(!r.ok){
-      if(j.error==="no_credentials"){ openModal(); return; }
-      throw new Error(j.error||("HTTP "+r.status));
-    }
+    const r=await fetch("/api/metrics?"+qs);
+    const j=await r.json();
+    if(!r.ok){ if(j.error==="no_credentials"){ openModal(); return; } throw new Error(j.error||("HTTP "+r.status)); }
     render(j);
   }catch(e){
-    b.textContent = "Could not load metrics: "+e.message; b.style.display="block";
+    $("#banner").textContent="Could not load metrics: "+e.message; $("#banner").style.display="block";
     for(const id of ["closed","survey","adoption"]) $("#"+id).innerHTML="";
-  }finally{ btn.disabled=false; btn.textContent="Refresh"; }
+  }finally{ btn.disabled=false; }
 }
 
-function kpi(k,v,d){ return `<div class="kpi"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d||""}</div></div>`; }
+// Map the live API row shape onto the design's field names.
+function norm(x){
+  return {name:x.name, level:x.level, vendor:x.vendor||"", closed:x.closed,
+          avg:x.avg_closed_per_day, responses:x.survey_responses, nps:x.nps, csat:x.csat,
+          dist:x.distribution||{}, drafted:x.drafted_closed, approved:x.approved_closed, rate:x.adoption_rate};
+}
 
 function render(j){
-  const t=j.totals;
-  $("#kpis").innerHTML = [
-    kpi("Tickets closed", t.closed, `${j.range.days} day window`),
-    kpi("Survey NPS", t.nps==null?"—":t.nps, `${t.survey_responses} responses`),
-    kpi("Avg CSAT", t.csat==null?"—":t.csat+" / 5", `${t.promoters} promoters · ${t.detractors} detractors`),
-    kpi("AI adoption (closed)", pct(t.adoption_rate), `${t.approved_closed} of ${t.drafted_closed} drafted+closed`),
-  ].join("");
+  const t=j.totals, rows=j.by_ic.map(norm), agents=rows.length;
+  $("#periodPill").textContent = `${j.range.from===j.range.to?fmtDate(j.range.from):"month-to-date"} · ${j.range.days} days`;
+  $("#footL").textContent = `${fmtDate(j.range.from)} → ${fmtDate(j.range.to)} · ${j.team_only?"support team only":"all owners"} · pulled ${new Date(j.generated_at).toLocaleString()}`;
 
+  // ---- KPIs ----
+  const npsTone = t.nps==null ? "#5C7385" : (t.nps>=30 ? "var(--posbar)" : "var(--neg)");
+  const kpis=[
+    {label:"Tickets closed", val:String(t.closed), suf:"", tone:"var(--teal)", gauge:"100%",
+     detail:`${j.range.days}-day window · ${agents} agents`, sample:false},
+    {label:"Survey NPS", val:t.nps==null?"—":t.nps.toFixed(1), suf:"", tone:npsTone,
+     gauge:t.nps==null?"0%":((t.nps+100)/2).toFixed(1)+"%",
+     detail:t.survey_responses?`${t.survey_responses} responses · ${t.promoters} promoters`:"no responses yet", sample:false},
+    {label:"Avg CSAT", val:t.csat==null?"—":t.csat.toFixed(2), suf:t.csat==null?"":"/ 5",
+     tone:"var(--posbar)", gauge:t.csat==null?"0%":(t.csat/5*100).toFixed(1)+"%",
+     detail:t.survey_responses?`${t.promoters} promoters · ${t.detractors} detractor${t.detractors===1?"":"s"}`:"no responses yet", sample:false},
+    {label:"AI adoption (closed)", val:t.adoption_rate==null?"—":String(Math.round(t.adoption_rate*100)),
+     suf:t.adoption_rate==null?"":"%", tone:"var(--amber)",
+     gauge:t.adoption_rate==null?"0%":(t.adoption_rate*100).toFixed(1)+"%",
+     detail:`${t.approved_closed} of ${t.drafted_closed} drafted + closed`, sample:true},
+  ];
+  $("#kpis").innerHTML = kpis.map(k=>`
+    <div class="kpi">
+      <div class="top"><span class="eyebrow" style="font-size:10.5px">${k.label}</span>
+        ${k.sample?'<span class="sample">Sample</span>':''}</div>
+      <div style="display:flex;align-items:baseline;gap:4px">
+        <span class="val num">${k.val}</span><span class="suf">${k.suf}</span></div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="gauge"><i style="width:${k.gauge};background:${k.tone}"></i></div>
+        <span style="font-size:11.5px;font-weight:300;color:var(--sec)">${esc(k.detail)}</span></div>
+    </div>`).join("");
+
+  // ---- Tickets closed by IC ----
+  $("#closedTotal").textContent = t.closed;
+  const ics=rows.slice().sort((a,b)=>b.closed-a.closed);
+  const maxClosed=Math.max(1,...ics.map(r=>r.closed));
+  const head=`<div style="display:grid;grid-template-columns:26px 1fr 74px 60px;gap:14px;align-items:center;padding:12px 0 8px" class="eyebrow"><span style="font-size:9.5px">#</span><span style="font-size:9.5px">Agent</span><span style="font-size:9.5px;text-align:right">Closed</span><span style="font-size:9.5px;text-align:right">Avg/day</span></div>`;
+  $("#closed").innerHTML = ics.length ? head + ics.map((r,i)=>{
+    const L2=r.level==="Level 2";
+    return `<div style="display:grid;grid-template-columns:26px 1fr 74px 60px;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--hair)">
+      <span class="num" style="font-size:12px;font-weight:600;color:${i<3?'var(--teal)':'var(--muted)'}">${String(i+1).padStart(2,"0")}</span>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap">${esc(r.name)}</span>
+          <span style="font-size:9.5px;font-weight:600;letter-spacing:.06em;color:${L2?'var(--navy)':'var(--sec)'};background:${L2?'var(--tint)':'var(--hair)'};border-radius:4px;padding:2px 6px">${L2?'L2':'L1'}</span>
+          ${r.vendor?`<span style="font-size:11px;font-weight:300;color:var(--muted);white-space:nowrap">${esc(r.vendor)}</span>`:''}
+        </div>
+        <div style="height:6px;background:var(--hair);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--teal);width:${(r.closed/maxClosed*100).toFixed(1)}%"></div></div>
+      </div>
+      <span class="num" style="font-size:15px;font-weight:600;text-align:right;color:var(--navy)">${r.closed}</span>
+      <span class="num" style="font-size:12.5px;font-weight:400;text-align:right;color:var(--sec)">${r.avg.toFixed(2)}</span>
+    </div>`;
+  }).join("") : `<div class="loading">No data in this window.</div>`;
+
+  // ---- Survey scores ----
+  renderSurvey(j,t,rows);
+
+  // ---- Adoption ----
+  const withDraft=rows.filter(r=>r.drafted>0).sort((a,b)=>(b.rate??-1)-(a.rate??-1));
+  const maxDrafted=Math.max(1,...withDraft.map(r=>r.drafted));
+  $("#adoptTotals").innerHTML = [
+    ["Drafted + closed", t.drafted_closed, "var(--sec)"],
+    ["Draft used", t.approved_closed, "var(--warn)"],
+    ["Team rate", t.adoption_rate==null?"—":Math.round(t.adoption_rate*100)+"%", "var(--navy)"],
+  ].map(([l,v,c])=>`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">
+     <span class="eyebrow" style="font-size:9.5px">${l}</span>
+     <span class="num" style="font-size:19px;font-weight:600;color:${c}">${v}</span></div>`).join("");
+  $("#adoption").innerHTML = withDraft.length ? `<div style="padding:4px 24px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:0 40px">`+
+    withDraft.map(r=>{
+      const rate=r.rate, rateTone=rate>=0.7?"var(--navy)":rate>=0.5?"var(--sec)":"var(--muted)";
+      return `<div style="display:grid;grid-template-columns:minmax(120px,1fr) minmax(70px,140px) 58px 44px;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--hair)">
+        <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
+        <div style="height:8px;background:var(--hair);border-radius:4px;overflow:hidden;position:relative">
+          <div style="height:100%;background:rgba(200,138,46,.25);border-radius:4px;width:${(r.drafted/maxDrafted*100).toFixed(1)}%"></div>
+          <div style="position:absolute;top:0;left:0;height:100%;background:var(--amber);border-radius:4px;width:${(r.approved/maxDrafted*100).toFixed(1)}%"></div>
+        </div>
+        <span class="num" style="font-size:11.5px;font-weight:400;color:var(--muted);text-align:right">${r.approved} / ${r.drafted}</span>
+        <span class="num" style="font-size:13.5px;font-weight:600;color:${rateTone};text-align:right">${rate==null?"—":Math.round(rate*100)+"%"}</span>
+      </div>`;
+    }).join("")+`</div>` : `<div class="loading">No closed tickets with an AI draft in this window.</div>`;
+}
+
+function renderSurvey(j,t,rows){
   if(!j.survey_available){
-    const n=$("#note");
-    n.style.display="block";
-    n.textContent = `Survey scores unavailable: the Case field "${j.satisfaction_field}" wasn't found on this Creatio instance. `
-      + `Set the correct navigation property in the Credentials dialog to enable survey metrics.`;
+    $("#survey").innerHTML = `<div style="padding:16px 24px 20px"><div class="note">Survey scores unavailable: the Case field “${esc(j.satisfaction_field)}” wasn’t found on this Creatio instance. Set the correct navigation property in the Credentials dialog to enable survey metrics.</div></div>`;
+    return;
   }
+  const resp=t.survey_responses;
+  const teamDist=BANDS.filter(b=>(t.distribution[b]||0)>0).map(b=>({
+    label:b,count:t.distribution[b],sign:BAND[b].sign,fill:BAND[b].fill,ink:BAND[b].ink,
+    width:(t.distribution[b]/(resp||1)*100).toFixed(1)+"%"}));
+  const tint = `<div style="margin:16px 24px 0;background:var(--tint);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px">
+      ${[["Team NPS",t.nps==null?"—":t.nps.toFixed(1)],["CSAT",t.csat==null?"—":t.csat.toFixed(2)],["Responses",resp]]
+        .map((p,i)=>`<div style="display:flex;flex-direction:column;gap:2px;${i?'align-items:flex-end':''}">
+          <span class="eyebrow" style="font-size:9.5px;color:var(--sec)">${p[0]}</span>
+          <span class="num" style="font-size:28px;font-weight:600;line-height:1;color:var(--navy)">${p[1]}</span></div>`).join("")}
+    </div>
+    ${resp?`<div style="display:flex;gap:3px;height:24px">${teamDist.map(d=>`<div style="border-radius:4px;display:flex;align-items:center;justify-content:center;background:${d.fill};color:${d.ink};width:${d.width};font-size:11px;font-weight:600">${d.count}</div>`).join("")}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px">${teamDist.map(d=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${d.fill}"></span><span style="font-size:11px;color:var(--navy)">${d.label}</span><span style="font-size:11px;font-weight:600;color:var(--sec)">${d.sign}</span></div>`).join("")}</div>`:''}
+  </div>`;
 
-  const ic=j.by_ic;
-  // 1) closed by IC
-  const maxClosed = Math.max(1, ...ic.map(x=>x.closed));
-  $("#closed").innerHTML = ic.length ? table(
-    ["IC","Level","Closed","Avg / day",""],
-    ic.map(x=>`<tr><td>${esc(x.name)}</td><td class="mut">${esc(x.level)}</td>
-      <td><b>${x.closed}</b></td><td class="mut">${x.avg_closed_per_day}</td>
-      <td><span class="bar" style="width:140px"><i style="width:${(x.closed/maxClosed*100).toFixed(0)}%"></i></span></td></tr>`)
-  ) : empty();
-
-  // 2) survey
-  const withSurvey = ic.filter(x=>x.survey_responses>0);
-  $("#survey").innerHTML = (j.survey_available && withSurvey.length) ? table(
-    ["IC","Responses","NPS","CSAT","Excellent","Good","Neutral","Poor","Extremely poor"],
-    withSurvey.sort((a,b)=>(b.nps??-999)-(a.nps??-999)).map(x=>{
-      const d=x.distribution;
-      const npsCls = x.nps>=50?"pos":(x.nps<0?"neg":"");
-      return `<tr><td>${esc(x.name)}</td><td>${x.survey_responses}</td>
-        <td class="${npsCls}"><b>${x.nps==null?"—":x.nps}</b></td><td>${x.csat==null?"—":x.csat}</td>
-        <td class="pos">${d["Excellent"]}</td><td>${d["Good"]}</td><td class="mut">${d["Neutral"]}</td>
-        <td>${d["Poor"]}</td><td class="neg">${d["Extremely poor"]}</td></tr>`;
-    })
-  ) : `<div class="empty">${j.survey_available?"No survey responses in this window.":"Survey field not available — see the note above."}</div>`;
-
-  // 3) adoption (closed only)
-  const withDraft = ic.filter(x=>x.drafted_closed>0);
-  $("#adoption").innerHTML = withDraft.length ? table(
-    ["IC","Closed w/ draft","Draft used","Adoption",""],
-    withDraft.sort((a,b)=>(b.adoption_rate??-1)-(a.adoption_rate??-1)).map(x=>{
-      const r=x.adoption_rate;
-      const cls = r==null?"":(r>=0.5?"pos":(r<0.2?"neg":""));
-      return `<tr><td>${esc(x.name)}</td><td>${x.drafted_closed}</td><td>${x.approved_closed}</td>
-        <td class="${cls}"><b>${pct(r)}</b></td>
-        <td><span class="bar" style="width:140px"><i style="width:${r==null?0:(r*100).toFixed(0)}%"></i></span></td></tr>`;
-    })
-  ) : `<div class="empty">No closed tickets with an AI draft in this window.</div>`;
-
-  const gen = new Date(j.generated_at).toLocaleString();
-  $("#footer").textContent = `Range ${j.range.from} → ${j.range.to} · ${j.team_only?"support team only":"all owners"} · pulled ${gen}`;
+  const survey=rows.filter(r=>r.responses>0).sort((a,b)=>b.responses-a.responses||(b.nps??-999)-(a.nps??-999));
+  const head=`<div style="display:grid;grid-template-columns:1fr 48px 42px;gap:12px;padding:12px 0 8px" class="eyebrow"><span style="font-size:9.5px">Agent · responses</span><span style="font-size:9.5px;text-align:right">NPS</span><span style="font-size:9.5px;text-align:right">CSAT</span></div>`;
+  const list = survey.map(r=>{
+    const npsTone=r.nps>=70?"var(--pos)":r.nps>=30?"var(--warn)":"var(--neg)";
+    const segs=BANDS.filter(b=>(r.dist[b]||0)>0).map(b=>({fill:BAND[b].fill,width:((r.dist[b]||0)/r.responses*100).toFixed(1)+"%",tag:`${BAND[b].sign} ${b} ${r.dist[b]||0}`}));
+    return `<div style="display:flex;flex-direction:column;gap:8px;padding:11px 0;border-top:1px solid var(--hair)">
+      <div style="display:grid;grid-template-columns:1fr 48px 42px;gap:12px;align-items:baseline">
+        <div style="display:flex;align-items:baseline;gap:8px;min-width:0">
+          <span style="font-size:13px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</span>
+          <span style="font-size:11px;font-weight:300;color:var(--muted);white-space:nowrap">${r.responses===1?"1 response":r.responses+" responses"}</span></div>
+        <span class="num" style="font-size:13.5px;font-weight:600;text-align:right;color:${npsTone}">${r.nps.toFixed(1)}</span>
+        <span class="num" style="font-size:13.5px;font-weight:500;text-align:right;color:var(--sec)">${r.csat.toFixed(2)}</span></div>
+      <div style="display:flex;gap:3px;height:8px">${segs.map(g=>`<div style="border-radius:2px;background:${g.fill};width:${g.width}"></div>`).join("")}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">${segs.map(g=>`<span style="font-size:10.5px;font-weight:400;color:var(--sec)">${esc(g.tag)}</span>`).join("")}</div>
+    </div>`;
+  }).join("");
+  const foot=`<p style="margin:14px 0 0;font-size:11px;font-weight:300;color:var(--muted)">Only agents with at least one survey response are listed. Negative bands carry a minus sign as well as colour.</p>`;
+  $("#survey").innerHTML = tint + `<div style="padding:8px 24px 20px">${head}${survey.length?list:'<div class="loading" style="padding:16px">No survey responses in this window.</div>'}${survey.length?foot:''}</div>`;
 }
-
-function table(cols, rows){
-  return `<div style="overflow-x:auto"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
-    <tbody>${rows.join("")}</tbody></table></div>`;
-}
-function empty(){ return `<div class="empty">No data in this window.</div>`; }
 
 init();
 </script>

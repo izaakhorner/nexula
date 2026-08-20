@@ -50,18 +50,19 @@ DETRACTORS = {"poor", "extremely poor"}
 # and (b) restrict the default view to the support team. Matching tolerates minor Creatio
 # spelling drift (see `_match_roster`). "Mostafa Essam" and "Mostafa Essa" are two people.
 SUPPORT_ROSTER = {
-    "Oliver Asuncion": "Level 1",
-    "Anton Lopez": "Level 1",
-    "Rahul Kumar": "Level 1",
-    "Aditya Katyayan": "Level 1",
-    "Abdul Hassan": "Level 1",
-    "Marc Magno": "Level 1",
-    "Jae Villalobos": "Level 1",
-    "Hisham Abdelrashid": "Level 1",
-    "Mostafa Essa": "Level 1",
-    "Youssef Eissa": "Level 2",
-    "Mostafa Essam": "Level 2",
-    "Youssef Ibrahim": "Level 2",
+    # name: (level, vendor)
+    "Oliver Asuncion": ("Level 1", "MicroSourcing"),
+    "Anton Lopez": ("Level 1", "MicroSourcing"),
+    "Rahul Kumar": ("Level 1", "Sherpa"),
+    "Aditya Katyayan": ("Level 1", "Sherpa"),
+    "Abdul Hassan": ("Level 1", "Sherpa"),
+    "Marc Magno": ("Level 1", "MicroSourcing"),
+    "Jae Villalobos": ("Level 1", "MicroSourcing"),
+    "Hisham Abdelrashid": ("Level 1", "FlairsTech"),
+    "Mostafa Essa": ("Level 1", "FlairsTech"),
+    "Youssef Eissa": ("Level 2", "FlairsTech"),
+    "Mostafa Essam": ("Level 2", "FlairsTech"),
+    "Youssef Ibrahim": ("Level 2", "FlairsTech"),
 }
 
 
@@ -88,11 +89,11 @@ def _lev(a: str, b: str) -> int:
     return prev[n]
 
 
-_ROSTER_NORM = {_norm_name(name): (name, lvl) for name, lvl in SUPPORT_ROSTER.items()}
+_ROSTER_NORM = {_norm_name(name): (name, lvl, vend) for name, (lvl, vend) in SUPPORT_ROSTER.items()}
 
 
-def _match_roster(name: str) -> tuple[str, str] | None:
-    """Return (canonical_name, level) if `name` is (close to) someone on the roster, else None."""
+def _match_roster(name: str) -> tuple[str, str, str] | None:
+    """Return (canonical_name, level, vendor) if `name` is (close to) someone on the roster, else None."""
     x = _norm_name(name)
     if not x:
         return None
@@ -289,14 +290,17 @@ def collect(creds: dict | None = None, date_from: str | None = None,
 
     ic: dict[str, dict] = defaultdict(_blank_ic)
     ic_level: dict[str, str] = {}
+    ic_vendor: dict[str, str] = {}
 
     def bump_level(name: str) -> bool:
-        """Record the IC's level; return True if they're on the support roster."""
+        """Record the IC's level + vendor; return True if they're on the support roster."""
         m = _match_roster(name)
         if m:
             ic_level[name] = m[1]
+            ic_vendor[name] = m[2]
             return True
-        ic_level.setdefault(name, (all_rows and "Other") or "Other")
+        ic_level.setdefault(name, "Other")
+        ic_vendor.setdefault(name, "")
         return False
 
     # --- 1) Tickets closed by IC  +  2) survey scores (over all cases in window) ---
@@ -366,6 +370,7 @@ def collect(creds: dict | None = None, date_from: str | None = None,
         by_ic.append({
             "name": name,
             "level": ic_level.get(name, "Other"),
+            "vendor": ic_vendor.get(name, ""),
             "closed": rec["closed"],
             "avg_closed_per_day": round(rec["closed"] / days, 2),
             "survey_responses": rec["survey_responses"],
